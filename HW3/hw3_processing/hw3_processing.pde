@@ -46,14 +46,20 @@ void keyEvent(String s) {
     robot.keyRelease(KeyEvent.VK_SPACE);
   } else if (s.equals("LEFT")) {
     robot.keyPress(KeyEvent.VK_LEFT);
-  } else if (s.equals("LEFT_I")) {
+  } else if (s.equals("LEFT_R")) {
     robot.keyRelease(KeyEvent.VK_LEFT);
+  } else if (s.equals("RIGHT")) {
+    robot.keyPress(KeyEvent.VK_RIGHT);
+  } else if (s.equals("RIGHT_R")) {
+    robot.keyRelease(KeyEvent.VK_RIGHT);
   } else if (s.equals("ACCELERATE")) {
     robot.keyPress(KeyEvent.VK_UP);
-    robot.keyRelease(KeyEvent.VK_DOWN);
+  } else if (s.equals("ACCELERATE_R")) {
+    robot.keyRelease(KeyEvent.VK_UP);
   } else if (s.equals("BRAKE")) {
     robot.keyPress(KeyEvent.VK_DOWN);
-    robot.keyRelease(KeyEvent.VK_UP);
+  } else if (s.equals("BRAKE_R")) {
+    robot.keyRelease(KeyEvent.VK_DOWN);
   } else {
     println("bad string");
     println(s);
