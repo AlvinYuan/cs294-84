@@ -6,9 +6,7 @@
  * Hook up buttons to d2-3. One side ground, other side digital pin.
  * Put 10M resistor between d8 and d9-10. Connect Foil/wire to d9-10.
  * Hook up FSR to a0 and Vcc.
- *
- * Note that FSR currently will always output ACCELERATE or BRAKE.
- * If Processing is running, this means either the Up or Down arrow is being held.
+ * Hook up accelerometer x-axis to a1.
  */
 
 /*
@@ -66,11 +64,12 @@ speedState previousSpeedState = NEUTRAL;
 
 /*
  * Accelerometer
+ * DRIFT
  */
 const int numAxes = 3;
 const int axesPins[numAxes] = {A1, A2, A3};
 const int driftUpperThreshold = 350;
-const int driftLowerThreshold = 310;
+const int driftLowerThreshold = 300;
 int axesValues[numAxes];
 
 void setup() {
