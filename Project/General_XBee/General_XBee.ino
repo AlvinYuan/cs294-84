@@ -20,6 +20,8 @@
 const int dangerButtonPin = 2;
 const int dangerLEDPin = 13;
 long lastDangerMessageReceivedTime = 0;
+const int phoneInput = A0; // ghetto ass input
+const int analogThresh = 200;
 
 /*
  * Debouncing State
@@ -30,12 +32,19 @@ int dangerButtonState;
 int previousDangerButtonReading = HIGH;
 long lastDebounceTime = 0;
 
+// for audio checking
+
+int currentValue = 0;
+int prevValue = 0;
+
 
 void setup() {
   Serial.begin(9600);
 
   pinMode(dangerButtonPin, INPUT_PULLUP);
   pinMode(dangerLEDPin, OUTPUT);
+
+
 }
 
 void loop() {
@@ -73,4 +82,14 @@ void loop() {
     }    
   }
   previousDangerButtonReading = dangerButtonReading;
+  
+  prevValue = currentValue;
+  currentValue = analogRead(phoneInput);
+  if ( currentValue ==0 && prevValue != 0){
+    Serial.print("X");
+  }
+    
+    
+    
+  
 }
