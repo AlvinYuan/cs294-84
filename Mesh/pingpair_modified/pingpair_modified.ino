@@ -17,7 +17,7 @@
  
  /*
  Requires RF24 library to run,
- modified 11/7/13 Colin Ho
+ modified 11/7/13 Colin Ho and Rundong Tian
  */
  
 
@@ -34,6 +34,9 @@
 
 RF24 radio(9,10);
 
+// add a digital pin to write to communicate to the microphone... software serial? 
+const int mic_pin = 8; 
+
 // Add servo
 Servo servo1;
 int pos = 0; //store servo position
@@ -44,6 +47,8 @@ const int role_pin = 7;
 
 // Pin to read button
 const int button_pin = 6;
+
+// Pin to 
 
 // Pin for servo
 const int servo_pin = 5;
@@ -85,21 +90,31 @@ void setup(void)
   // set up the role pin
   pinMode(role_pin, INPUT);
   digitalWrite(role_pin,HIGH);
-  pinMode(button_pin,INPUT);
+  
   delay(20); // Just to get a solid reading on the role pin
-  servo1.attach(servo_pin);  //attach servo
-  servo1.write(90);
+  
+    
   
   // read the address pin, establish our role
-  if ( ! digitalRead(role_pin) )
+  if ( ! digitalRead(role_pin) ){// you are not connected to the phone
+    
     role = role_ping_out;
-  else
+    //attach and  servo
+    servo1.attach(servo_pin);  
+    servo1.write(90);
+    // have dat button there too
+    pinMode(button_pin,INPUT);
+  }
+  else{ // you are attached to alvin's phone
+   
     role = role_pong_back;
+    pinMode(mic_pin,OUTPUT);   
+    
+  }
 
-  //
-  // Print preamble
-  //
-
+  /****
+  * Print preamble
+  ****/
   Serial.begin(57600);
   printf_begin();
   printf("\n\rRF24/examples/pingpair/\n\r");
@@ -157,19 +172,24 @@ void loop(void)
   // Ping out role.  Repeatedly send the current time
   //
   
-  //Check state of button
-  if (digitalRead(button_pin) == HIGH)
-  {
-    //state is high  
-    state = 111; 
-  }
-  else  //button is LOW
-  {
-    state = 100; 
-  }
+
+  
+  
   
   if (role == role_ping_out)
   {
+    
+    //Check state of button... 
+    if (digitalRead(button_pin) == HIGH)
+    {
+      //state is high  
+      state = 111; 
+    }
+    else  //button is LOW
+    {
+      state = 100; 
+    }
+  
     // First, stop listening so we can talk.
     radio.stopListening();
 
@@ -206,6 +226,12 @@ void loop(void)
       // Spew it
       printf("Got response %lu",got_state);
     }
+    
+    
+    if (got_state = 150){
+      
+    }
+    
 
     // Try again 1s later
     delay(100);
@@ -240,12 +266,12 @@ void loop(void)
       // actuate servo based on state change
       if (state == 100)
       {
-        pos = 150;
+        pos = 180;
         servo1.write(pos);  
       }
       else if (state == 111)
       {
-        pos = 40;
+        pos = 0;
         servo1.write(pos);
       }
       else
