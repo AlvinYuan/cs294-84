@@ -25,7 +25,7 @@
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "printf.h"
-
+#include <Servo.h>
 //
 // Hardware configuration
 //
@@ -34,6 +34,10 @@
 
 RF24 radio(9,10);
 
+// Add servo
+Servo servo1;
+int pos = 0; //store servo position
+
 // sets the role of this unit in hardware.  Connect to GND to be the 'pong' receiver
 // Leave open to be the 'ping' transmitter
 const int role_pin = 7;
@@ -41,9 +45,11 @@ const int role_pin = 7;
 // Pin to read button
 const int button_pin = 6;
 
+// Pin for servo
+const int servo_pin = 5;
+
 //initialize state variable that stores the status of the state
 unsigned long state = 100;  //default off
-
 //
 // Topology
 //
@@ -81,7 +87,9 @@ void setup(void)
   digitalWrite(role_pin,HIGH);
   pinMode(button_pin,INPUT);
   delay(20); // Just to get a solid reading on the role pin
-
+  servo1.attach(servo_pin);  //attach servo
+  servo1.write(90);
+  
   // read the address pin, establish our role
   if ( ! digitalRead(role_pin) )
     role = role_ping_out;
@@ -192,11 +200,11 @@ void loop(void)
     else
     {
       // Grab the response, compare, and send to debugging spew
-      unsigned long got_time;
-      radio.read( &got_time, sizeof(unsigned long) );
+      unsigned long got_state;
+      radio.read( &got_state, sizeof(unsigned long) );
 
       // Spew it
-      printf("Got response %lu, round-trip delay: %lu\n\r",got_time,millis()-got_time);
+      printf("Got response %lu",got_state);
     }
 
     // Try again 1s later
@@ -222,12 +230,30 @@ void loop(void)
 
         // Spew it
         printf("Got payload %lu...",got_state);
-
+        
 	// Delay just a little bit to let the other unit
 	// make the transition to receiver
 	delay(20);
       }
-
+      state = got_state;
+      
+      // actuate servo based on state change
+      if (state == 100)
+      {
+        pos = 150;
+        servo1.write(pos);  
+      }
+      else if (state == 111)
+      {
+        pos = 40;
+        servo1.write(pos);
+      }
+      else
+      {
+        servo1.write(pos);
+      }
+      
+      
       // First, stop listening so we can talk
       radio.stopListening();
 
