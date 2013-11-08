@@ -42,7 +42,7 @@ const int role_pin = 7;
 const int button_pin = 6;
 
 //initialize state variable that stores the status of the state
-unsigned long state = 0;  //default off
+unsigned long state = 100;  //default off
 
 //
 // Topology
@@ -153,11 +153,11 @@ void loop(void)
   if (digitalRead(button_pin) == HIGH)
   {
     //state is high  
-    state = 1; 
+    state = 111; 
   }
   else  //button is LOW
   {
-    state = 0; 
+    state = 100; 
   }
   
   if (role == role_ping_out)
@@ -232,7 +232,7 @@ void loop(void)
       radio.stopListening();
 
       // Send the final one back.
-      radio.write( &got_time, sizeof(unsigned long) );
+      radio.write( &got_state, sizeof(unsigned long) );
       printf("Sent response.\n\r");
 
       // Now, resume listening so we catch the next packets.
