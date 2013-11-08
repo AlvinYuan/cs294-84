@@ -34,26 +34,26 @@
 
 RF24 radio(9,10);
 
-// add a digital pin to write to communicate to the microphone... software serial? 
+
+
+// sets the role of this unit in hardware.  Connect to GND to be the 'pong' receiver
+// Leave open to be the 'ping' transmitter
+const int role_pin = 7;
+
+// add a digital pin to write to communicate out to the microphone... 
 const int mic_pin = 8; 
 
 // Add servo
 Servo servo1;
 int pos = 0; //store servo position
 
-// sets the role of this unit in hardware.  Connect to GND to be the 'pong' receiver
-// Leave open to be the 'ping' transmitter
-const int role_pin = 7;
-
 // Pin to read button
 const int button_pin = 6;
-
-// Pin to 
 
 // Pin for servo
 const int servo_pin = 5;
 
-//initialize state variable that stores the status of the state
+//initialize state variable 
 unsigned long state = 100;  //default off
 //
 // Topology
@@ -96,17 +96,18 @@ void setup(void)
     
   
   // read the address pin, establish our role
-  if ( ! digitalRead(role_pin) ){// you are not connected to the phone
-    
+  if ( ! digitalRead(role_pin) ){
+    // you are not connected to the phone
     role = role_ping_out;
+    
     //attach and  servo
     servo1.attach(servo_pin);  
     servo1.write(90);
     // have dat button there too
     pinMode(button_pin,INPUT);
   }
-  else{ // you are attached to alvin's phone
-   
+  else{ 
+    // you are attached to alvin's phone
     role = role_pong_back;
     pinMode(mic_pin,OUTPUT);   
     
@@ -123,7 +124,6 @@ void setup(void)
   //
   // Setup and configure rf radio
   //
-
   radio.begin();
 
   // optionally, increase the delay between retries & # of retries
@@ -168,21 +168,17 @@ void setup(void)
 
 void loop(void)
 {
-  //
-  // Ping out role.  Repeatedly send the current time
-  //
   
-
+  /************
+  * for if the role is 
+  ******************/
   
-  
-  
-  if (role == role_ping_out)
+  if (role == role_ping_out)// ping out has button and servo
   {
-    
     //Check state of button... 
     if (digitalRead(button_pin) == HIGH)
     {
-      //state is high  
+      //button is HIGH  
       state = 111; 
     }
     else  //button is LOW
