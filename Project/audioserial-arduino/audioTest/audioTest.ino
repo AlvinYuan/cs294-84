@@ -13,6 +13,7 @@ AudioSerial audioserial(A0,20,138,30);
 
 int previousValue = 0;
 int count = 0;
+
 void setup(){
  Serial.begin(9600);
  Serial.println("hello"); 

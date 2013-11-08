@@ -17,10 +17,11 @@
  
  /*
  Requires RF24 library to run,
- modified 11/7/13 Colin Ho
+ modified 11/7/13 Colin Ho, Rundong Tian, Alvin Yuan
  */
  
-
+ 
+#include <AudioSerial.h> 
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
@@ -31,8 +32,12 @@
 //
 
 // Set up nRF24L01 radio on SPI bus plus pins 9 & 10
-
 RF24 radio(9,10);
+
+// Open audio serial communication on pin A0 at 20 bits per seconds
+// with starting byte 138 and voltage threshold 30
+AudioSerial audioserial(A0,20,138,30);
+
 
 // Add servo
 Servo servo1;
@@ -157,18 +162,21 @@ void loop(void)
   // Ping out role.  Repeatedly send the current time
   //
   
-  //Check state of button
-  if (digitalRead(button_pin) == HIGH)
-  {
-    //state is high  
-    state = 111; 
-  }
-  else  //button is LOW
-  {
-    state = 100; 
-  }
+  //Check for input from phone
+  audioserial.run(); // looks for start bit
+  char receivebyte=audioserial.read();
+  if(receivebyte>-1){
+     state = 111;
+     Serial.println("alvin's stuff arrived");
+  } 
   
-  if (role == role_ping_out)
+//  else  //button is LOW
+//  {
+//    state = 100; 
+//  }
+//  
+  
+  if (role == role_ping_out && state == 111)
   {
     // First, stop listening so we can talk.
     radio.stopListening();
