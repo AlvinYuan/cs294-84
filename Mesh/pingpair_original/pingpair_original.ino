@@ -152,30 +152,29 @@ void setup(void)
   //
   // Dump the configuration of the rf unit for debugging
   //
-
   radio.printDetails();
 }
 
 void loop(void)
 {
   //
-  // Ping out role.  Repeatedly send the current time
+  // Ping out role.  
   //
   
   //Check for input from phone
   audioserial.run(); // looks for start bit
+  
   char receivebyte=audioserial.read();
-  if(receivebyte>-1){
-     state = 111;
-     Serial.println("alvin's stuff arrived");
+  if(receivebyte>-1){    
+    if (receivebyte =='a'){
+      state = 111;
+    }
+    else if (receivebyte = 'b'){
+      state = 100; // back to default state
+    }
+
   } 
-  
-//  else  //button is LOW
-//  {
-//    state = 100; 
-//  }
-//  
-  
+
   if (role == role_ping_out && state == 111)
   {
     // First, stop listening so we can talk.
@@ -237,7 +236,7 @@ void loop(void)
         done = radio.read( &got_state, sizeof(unsigned long) );
 
         // Spew it
-        printf("Got payload %lu...",got_state);
+        printf("state is %lu...",got_state);
         
 	// Delay just a little bit to let the other unit
 	// make the transition to receiver
