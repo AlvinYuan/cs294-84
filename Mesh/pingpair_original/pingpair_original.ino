@@ -52,6 +52,9 @@ const int button_pin = 6;
 
 // Pin for servo
 const int servo_pin = 5;
+int servo_angle = 100;
+// Pin to send to micropohone buttton
+const int mic_pin = 8;
 
 //initialize state variable that stores the status of the state
 unsigned long state = 100;  //default off
@@ -90,7 +93,9 @@ void setup(void)
   // set up the role pin
   pinMode(role_pin, INPUT);
   digitalWrite(role_pin,HIGH);
-  pinMode(button_pin,INPUT);
+  pinMode(button_pin,INPUT_PULLUP);
+  pinMode(mic_pin, OUTPUT);
+  digitalWrite(mic_pin, LOW);
   delay(20); // Just to get a solid reading on the role pin
   servo1.attach(servo_pin);  //attach servo
   servo1.write(90);
@@ -159,24 +164,13 @@ void loop(void)
 {
   //
   // Ping out role.  
+  // Remote device HW5
   //
-  
-  //Check for input from phone
-  audioserial.run(); // looks for start bit
-  
-  char receivebyte=audioserial.read();
-  if(receivebyte>-1){    
-    if (receivebyte =='a'){
-      state = 111;
-    }
-    else if (receivebyte = 'b'){
-      state = 100; // back to default state
-    }
-
-  } 
-
-  if (role == role_ping_out && state == 111)
+   if (role == role_ping_out)
   {
+    boolean gotAState = false;
+    unsigned long got_state = state;
+
     // First, stop listening so we can talk.
     radio.stopListening();
 
@@ -207,70 +201,92 @@ void loop(void)
     else
     {
       // Grab the response, compare, and send to debugging spew
-      unsigned long got_state;
       radio.read( &got_state, sizeof(unsigned long) );
-
+      gotAState = true;
       // Spew it
       printf("Got response %lu",got_state);
     }
 
+    boolean buttonPinValue = digitalRead(button_pin);
+    switch(state) {
+      case 100:
+        if (buttonPinValue == HIGH) {
+          state = 111;
+        }
+        break;
+      case 111:
+        if (gotAState && got_state == 222) {
+          state = got_state;
+        }
+        break;
+      case 222:
+        // actuate servo based on state change
+        servo1.write(servo_angle);
+        servo_angle = servo_angle == 100 ? 0 : 100;
+        break;
+    }
+    
     // Try again 1s later
     delay(100);
   }
 
   //
   // Pong back role.  Receive each packet, dump it out, and send it back
+  // Connected device HW5
   //
 
   if ( role == role_pong_back )
   {
-    // if there is data ready
-    if ( radio.available() )
-    {
-      // Dump the payloads until we've gotten everything
-      unsigned long got_state;
-      bool done = false;
-      while (!done)
-      {
-        // Fetch the payload, and see if this was the last one.
-        done = radio.read( &got_state, sizeof(unsigned long) );
+    printf("%d state\n", state);
+    char receivebyte;
+    switch (state) {
+      case 100:
+        // if there is data ready
+        if ( radio.available() )
+        {
+          // Dump the payloads until we've gotten everything
+          unsigned long got_state;
 
-        // Spew it
-        printf("state is %lu...",got_state);
+          // Fetch the payload, and see if this was the last one.
+          while (!radio.read( &got_state, sizeof(unsigned long) ))
+          {
+    	    // Delay just a little bit to let the other unit
+    	    // make the transition to receiver
+    	    delay(20);
+          }
+          // Spew it
+          printf("state is %lu...",got_state);
+
+          if (got_state == 111) {
+            state = got_state;
+          }
+        }
+       break;
+      case 111:
+        digitalWrite(mic_pin, HIGH);
+        //Check for input from phone
+        audioserial.run(); // looks for start bit
         
-	// Delay just a little bit to let the other unit
-	// make the transition to receiver
-	delay(20);
-      }
-      state = got_state;
-      
-      // actuate servo based on state change
-      if (state == 100)
-      {
-        pos = 150;
-        servo1.write(pos);  
-      }
-      else if (state == 111)
-      {
-        pos = 40;
-        servo1.write(pos);
-      }
-      else
-      {
-        servo1.write(pos);
-      }
-      
-      
-      // First, stop listening so we can talk
-      radio.stopListening();
-
-      // Send the final one back.
-      radio.write( &got_state, sizeof(unsigned long) );
-      printf("Sent response.\n\r");
-
-      // Now, resume listening so we catch the next packets.
-      radio.startListening();
-    }
+        receivebyte=audioserial.read();
+        if(receivebyte>-1){    
+          if (receivebyte =='R'){
+            state = 222;
+            printf("Received R from Phone");
+          }
+        } 
+       break;
+     case 222:
+        // First, stop listening so we can talk
+        radio.stopListening();
+    
+        // Send the final one back.
+        radio.write( &state, sizeof(unsigned long) );
+        printf("Sent response.\n\r");
+    
+        // Now, resume listening so we catch the next packets.
+        radio.startListening();
+        break;
+    }      
   }
 }
 // vim:cin:ai:sts=2 sw=2 ft=cpp

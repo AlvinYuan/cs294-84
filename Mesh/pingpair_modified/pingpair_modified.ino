@@ -96,15 +96,15 @@ void setup(void)
     
   
   // read the address pin, establish our role
-  if ( ! digitalRead(role_pin) ){
-    // you are not connected to the phone
+  if ( ! digitalRead(role_pin) ){ 
+    // your ground is bridged. (Currently the Arduino Uno)
     role = role_ping_out;
     
     //attach and  servo
     servo1.attach(servo_pin);  
     servo1.write(90);
     // have dat button there too
-    pinMode(button_pin,INPUT);
+    pinMode(button_pin,INPUT_PULLUP);
   }
   else{ 
     // you are attached to alvin's phone
@@ -173,7 +173,7 @@ void loop(void)
   * for if the role is 
   ******************/
   
-  if (role == role_ping_out)// ping out has button and servo
+  if (role == role_ping_out)// ping out has button and servo (The UNO)
   {
     //Check state of button... 
     if (digitalRead(button_pin) == HIGH)
@@ -259,21 +259,12 @@ void loop(void)
       }
       state = got_state;
       
-      // actuate servo based on state change
-      if (state == 100)
+
+     if (state == 111)
       {
-        pos = 180;
-        servo1.write(pos);  
+        digitalWrite(micPin,HIGH);
       }
-      else if (state == 111)
-      {
-        pos = 0;
-        servo1.write(pos);
-      }
-      else
-      {
-        servo1.write(pos);
-      }
+
       
       
       // First, stop listening so we can talk
