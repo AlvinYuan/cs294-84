@@ -20,7 +20,10 @@ const int micOutputPin = 2;
 int previousValue = 0;
 int count = 0;
 
+<<<<<<< HEAD
 int incomingByte = 0;
+=======
+>>>>>>> 603de708a4f2bb0176624c8056fd93fe9d057116
 void setup(){
  Serial.begin(9600);
  Serial.println("hello"); 
