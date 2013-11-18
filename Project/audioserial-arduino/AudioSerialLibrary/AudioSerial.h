@@ -14,7 +14,6 @@ class AudioSerial
     int _pin;
     int _bps;
     int _startingByte;
-    int _threshold;
     boolean _readingBitState;
     boolean _readingByteState;
     int _bitPower;
@@ -25,7 +24,7 @@ class AudioSerial
     long _lastReadTime;
     	
   public:
-    AudioSerial(int pin,int bps,int startingByte,int threshold);
+    AudioSerial(int pin,int bps,int startingByte);
     void run();
     int read();
     int getDelay();

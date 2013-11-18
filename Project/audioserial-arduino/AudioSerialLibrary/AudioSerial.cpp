@@ -7,12 +7,11 @@
 #include "Arduino.h"
 #include "AudioSerial.h"
 
-AudioSerial::AudioSerial(int pin,int bps,int startingByte,int threshold)
+AudioSerial::AudioSerial(int pin,int bps,int startingByte)
 {
   _pin = pin;
   _bps = bps;
   _startingByte=startingByte;
-  _threshold=threshold;
   _readingBitState=false;
   _readingByteState=false;
   _bitPower=1;
@@ -23,16 +22,12 @@ AudioSerial::AudioSerial(int pin,int bps,int startingByte,int threshold)
 
 void AudioSerial::run(){
   long currentTime = millis();
-  if ( currentTime < _lastReadTime + 1000*2 / _bps) { // baudrate essentially halved to accommodate for new protocol of bit={bit,0}.
+  if ( currentTime < _lastReadTime + 1000 / _bps) { // baudrate essentially halved to accommodate for new protocol of bit={bit,0}.
     return;
   }
 
   
-  int receiveAnalog=analogRead(_pin);
-  int receiveBit=0;
-  // Compute bit from voltage
-  if(receiveAnalog>_threshold){receiveBit=1;}
-  // 
+  int receiveBit=digitalRead(_pin) == HIGH;
   if(!_readingBitState)
   {
  	 if(receiveBit==1){

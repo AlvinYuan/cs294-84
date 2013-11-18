@@ -1,75 +1,104 @@
 #include <AudioSerial.h>
 
-/* ServoControl
-*  Receive servo position from audio serial
-* Arduino Pins:
-* A0 on op amp output
-* D2 output to voltage divider (1/2 factor) to capacitor to mic input
-* GND and VCC to audio jack circuit
-* More circuitry for audio jack.
+/* Audio Serial Test
+ * Communicate between phone and microcontroller.
+ * Partner android app, ServoControl at: https://github.com/AlvinYuan/cs294-84
+ * 
+ * Setup: Phone -> Arduino
+ * Left AND Right Channel Stereo - 4k Ohm - GND
+ * Left OR Right Channel Stereo - Op Amp + Input
+ * Low Voltage (above phone bias) - Op Amp - Input (10k pot will help)
+ * Op Amp Output - 100 Ohm - A0 pin
+ * VCC and GND to Op Amp
+ * GND to Audio Jack GND
+ *
+ * Setup: Arduino -> Phone 
+ * Voltage Divider (1/2 factor) between D3 and GND
+ * Voltage Divider Output - Audio Jack Mic
+ * Audio Jack Mic - 10k Ohm - GND
 */
 
 #include <AudioSerial.h>
-#include <Servo.h> 
 
-// Open audio serial communication on pin A0 at 20 bits per seconds
-// with starting byte 138 and voltage threshold 30
-AudioSerial audioserial(A0,20,138,30);
+boolean debug;
+// Open audio serial communication on pin A0 at 200 bits per seconds
+// with starting byte 138
+// Change baudrate to match your app (may be 20)
+AudioSerial audioserial(A0,200,138);
 
-const int micOutputPin = 2;
+const int micOutputPin = 3;
 int previousValue = 0;
 int count = 0;
 
-<<<<<<< HEAD
+const int debugPin = 4;
+
 int incomingByte = 0;
-=======
->>>>>>> 603de708a4f2bb0176624c8056fd93fe9d057116
+
 void setup(){
- Serial.begin(9600);
+//  Serial.begin(200);
+ Serial.begin(57600);
  Serial.println("hello"); 
  pinMode(micOutputPin, OUTPUT); 
  digitalWrite(micOutputPin,LOW);
+ pinMode(debugPin, INPUT_PULLUP);
+ 
+ pinMode(13, OUTPUT);
+ digitalWrite(13, LOW);
 }
 
 void loop(){
-  audioserial.run(); 
-  // Read one byte
-  char receivebyte=audioserial.read();
-  if(receivebyte>-1){
-    Serial.println();
-    Serial.println(receivebyte);
-    Serial.println();
-  } 
+  debug = digitalRead(debugPin) == LOW;
+  if (!debug) {
+    
+    audioserial.run(); 
+    // Read one byte
+    char receivebyte=audioserial.read();
+    if(receivebyte>-1){
+      Serial.println();
+      Serial.println(receivebyte);
+      Serial.println();
+    } 
+    
+    // send bytes through the microphone
+    if (Serial.available() > 0) {
+            // read the incoming byte:
+            incomingByte = Serial.read();
+            
+            if (incomingByte == 'a'){
+             digitalWrite(micOutputPin,HIGH);
+             Serial.println("you've received a danger message! correct message");
+            }else{            
+              digitalWrite(micOutputPin,LOW);
+            }
   
-  // send bytes through the microphone
-  if (Serial.available() > 0) {
-          // read the incoming byte:
-          incomingByte = Serial.read();
-          
-          if (incomingByte == 'a'){
-           digitalWrite(micOutputPin,HIGH);
-           Serial.println("you've received a danger message! correct message");
-          }else{            
-            digitalWrite(micOutputPin,LOW);
-          }
-
-  }
-
-// Some Test Code
+    }
+  } else {
+    // Some Test Code
 //    delay(audioserial.getDelay() / 3);
-//  count=(count + 1) % 3;
-//  int value = analogRead(A0);
-//  if (previousValue == 0 && value == 0) {
-//    if (count == 0) {
+//    count=(count + 1) % 3;
+//    int value = analogRead(A0);
+//    if (previousValue == 0 && value == 0) {
+//      if (count == 0) {
+//        Serial.println(value);
+//      }
+//    } else {
 //      Serial.println(value);
+//      count = 0;
 //    }
-//  } else {
-//    Serial.println(value);
-//    count = 0;
-//  }
-//  previousValue = value;
+//    previousValue = value;
 
-// Other Test Code
-//  int value = analogRead(A0);
-//  Serial.println(value);
+    // Other Test Code
+//    int value = digitalRead(A0) == HIGH;
+//    Serial.println(value);
+    if (Serial.available()) {
+      digitalWrite(13, HIGH);
+    }
+//    if (mySerial.available()) {
+//      Serial.println("available");
+////      Serial.write(mySerial.read());
+//    } else {
+//      Serial.println("not available");
+//    }
+//    delay(1000);
+  }
 }

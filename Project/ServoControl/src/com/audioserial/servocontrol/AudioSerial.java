@@ -41,15 +41,15 @@ public class AudioSerial {
     public void send(int val){
         // Starting bit
         audiotrack.write(high, 0, bitlength);
-        audiotrack.write(low, 0, bitlength);
+//        audiotrack.write(low, 0, bitlength);
 
         for(int i=0;i<8;i++){
             if(val%2==0){
                 audiotrack.write(low, 0, bitlength);
-                audiotrack.write(low, 0, bitlength);
+//                audiotrack.write(low, 0, bitlength);
             }else{
                 audiotrack.write(high, 0, bitlength);
-                audiotrack.write(low, 0, bitlength);
+//                audiotrack.write(low, 0, bitlength);
             }
             val=(val/2);
         }

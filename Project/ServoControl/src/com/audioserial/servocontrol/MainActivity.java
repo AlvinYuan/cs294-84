@@ -14,9 +14,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static final int BAUD_RATE = 20;
-    private static final int POLL_INTERVAL = 300;//1000 / BAUD_RATE / 4;
-    private static final int AUDIO_SERIAL_RECEIVE_AMPLITUDE_THRESHOLD = 500;
+    private static final int BAUD_RATE = 200;
+    private static final int POLL_INTERVAL = 3000;//1000 / BAUD_RATE / 4;
+    private static final int AUDIO_SERIAL_RECEIVE_AMPLITUDE_THRESHOLD = 300;
 
     Button releaseButton, resetButton;
     TextView textview, sensorReading, micTextView, doorTextView;
