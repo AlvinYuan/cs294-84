@@ -5,32 +5,6 @@
     tools:context=".MainActivity" >
 
     <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="Servo Position : 0"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <Button
-        android:id="@+id/releaseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/textView1"
-        android:text="Release" />
-
-    <TextView
-        android:id="@+id/micTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/releaseButton"
-        android:text="MIC?"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <TextView
         android:id="@+id/sensorReadingTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -39,21 +13,84 @@
         android:text="Sensor Reading: "
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <TextView
-        android:id="@+id/doorTextView"
+    <EditText
+        android:id="@+id/BaudRateEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/sensorReadingTextView"
-        android:text="Door is ?"
+        android:ems="10"
+        android:inputType="number"
+        android:text="300" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/SampleRateEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/BaudRateEditText"
+        android:ems="10"
+        android:inputType="number"
+        android:text="44100" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/BaudRateEditText"
+        android:layout_toRightOf="@+id/resetButton"
+        android:text="Baudrate" />
+
+    <TextView
+        android:id="@+id/TextView01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/SampleRateEditText"
+        android:layout_alignLeft="@+id/textView1"
+        android:text="Sample Rate" />
+
+    <Button
+        android:id="@+id/DangerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="Danger" />
+
+    <TextView
+        android:id="@+id/micTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/DangerButton"
+        android:text="MIC?"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/BufferSizeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/SampleRateEditText"
+        android:text="Buffer Size" />
 
     <Button
         android:id="@+id/resetButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/doorTextView"
+        android:layout_below="@+id/BufferSizeTextView"
         android:text="Reset Audio Connection" />
+
+    <Button
+        android:id="@+id/SOSButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/DangerButton"
+        android:text="SOS" />
 
 </RelativeLayout>

@@ -8,7 +8,7 @@
  * Left AND Right Channel Stereo - 4k Ohm - GND
  * Left OR Right Channel Stereo - Op Amp + Input
  * Low Voltage (above phone bias) - Op Amp - Input (10k pot will help)
- * Op Amp Output - 100 Ohm - A0 pin
+ * Op Amp Output - 100 Ohm - 10 pin
  * VCC and GND to Op Amp
  * GND to Audio Jack GND
  *
@@ -18,74 +18,45 @@
  * Audio Jack Mic - 10k Ohm - GND
 */
 
-#include <AudioSerial.h>
+#include <SoftwareSerial.h>
 
+// For Debugging
 boolean debug;
-// Open audio serial communication on pin A0
-// Change baudrate to match your app (may be 20)
-AudioSerial audioserial(A0,300);
-
-const int micOutputPin = 3;
-int previousValue = 0;
-int count = 0;
-
 const int debugPin = 4;
 
-int incomingByte = 0;
+// Packet
+const char packetDelimiter = '\n';
+const char maxPacketSize = 100;
+char packet[maxPacketSize];
+
+// AudioSerial
+SoftwareSerial audioSerial(10, 11, true); // RX, TX, inverted logic (logical 1 = LOW voltage, logical 0 = HIGH voltage)
+int baudrate = 300;
 
 void setup(){
-//  Serial.begin(200);
- Serial.begin(57600);
- Serial.println("hello"); 
- pinMode(micOutputPin, OUTPUT); 
- digitalWrite(micOutputPin,LOW);
- pinMode(debugPin, INPUT_PULLUP);
- 
- pinMode(13, OUTPUT);
- digitalWrite(13, LOW);
+  // AudioSerial
+  audioSerial.begin(baudrate);
+
+  // For Debugging
+  Serial.begin(57600);
+  Serial.println("hello"); 
+  pinMode(debugPin, INPUT_PULLUP);
 }
 
 void loop(){
   debug = digitalRead(debugPin) == LOW;
   if (!debug) {
-    
-    audioserial.run(); 
-    // Read one byte
-    char receivebyte=audioserial.read();
-    if(receivebyte>-1){
-      Serial.println();
-      Serial.println(receivebyte);
-      Serial.println();
-    } 
+    if (audioSerial.available()) {      
+      int numBytesRead = audioSerial.readBytesUntil(packetDelimiter, packet, maxPacketSize);
+      Serial.print(numBytesRead);
+      Serial.println(packet);
+      for (int i = 0; i < numBytesRead; i++) {
+        packet[i] = 0;
+      }
+    }
     
     
   } else {
-    // Some Test Code
-    delay(audioserial.getDelay() / 3);
-    count=(count + 1) % 3;
-    int value = analogRead(A0);
-    if (previousValue == 0 && value == 0) {
-      if (count == 0) {
-        Serial.println(value);
-      }
-    } else {
-      Serial.println(value);
-      count = 0;
-    }
-    previousValue = value;
-
-    // Other Test Code
-//    int value = digitalRead(A0) == HIGH;
-//    Serial.println(value);
-//    if (Serial.available()) {
-//      digitalWrite(13, HIGH);
-//    }
-//    if (mySerial.available()) {
-//      Serial.println("available");
-////      Serial.write(mySerial.read());
-//    } else {
-//      Serial.println("not available");
-//    }
-//    delay(1000);
+    // Do Debugging Code
   }
 }

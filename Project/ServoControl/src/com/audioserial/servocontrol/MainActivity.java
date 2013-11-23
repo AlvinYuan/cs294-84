@@ -1,5 +1,7 @@
 package com.audioserial.servocontrol;
 
+import android.media.AudioFormat;
+import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.app.Activity;
@@ -14,13 +16,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static int baudrate = 20;
-
     private static final int POLL_INTERVAL = 3000;//1000 / BAUD_RATE / 4;
     private static final int AUDIO_SERIAL_RECEIVE_AMPLITUDE_THRESHOLD = 300;
 
-    Button releaseButton, resetButton;
-    TextView textview, sensorReading, micTextView, doorTextView;
+    Button dangerButton, sosButton, resetButton;
+    TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView;
 
     AudioSerial audioserial;
     boolean stopped;
@@ -31,11 +31,6 @@ public class MainActivity extends Activity {
     private Runnable mPollTask = new Runnable() {
         public void run() {
             int amp = mSensor.getAmplitude();
-            if (amp > AUDIO_SERIAL_RECEIVE_AMPLITUDE_THRESHOLD) {
-                doorTextView.setText("Door is open");
-            } else {
-                doorTextView.setText("Door is closed");
-            }
 
             updateCount++;
             sensorReading.setText("Sensor Reading: " + amp + "\nUpdate " + updateCount);
@@ -50,17 +45,26 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textview = (TextView) findViewById(R.id.textView1);
+
         sensorReading = (TextView) findViewById(R.id.sensorReadingTextView);
         micTextView = (TextView) findViewById(R.id.micTextView);
-        doorTextView = (TextView) findViewById(R.id.doorTextView);
+        baudRateEditText = (TextView) findViewById(R.id.BaudRateEditText);
+        sampleRateEditText = (TextView) findViewById(R.id.SampleRateEditText);
+        bufferSizeTextView = (TextView) findViewById(R.id.BufferSizeTextView);
 
         reset();
 
-        releaseButton = (Button) findViewById(R.id.releaseButton);
-        releaseButton.setOnClickListener(new OnClickListener() {
+        dangerButton = (Button) findViewById(R.id.DangerButton);
+        dangerButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                audioserial.send('R', true);
+                audioserial.send(" ABCDEFGHIJKLMNOPQRSTUVWXYZ", true);
+            }
+        });
+
+        sosButton = (Button) findViewById(R.id.SOSButton);
+        sosButton.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                audioserial.send(" SOS", true);
             }
         });
 
@@ -122,8 +126,14 @@ public class MainActivity extends Activity {
     }
 
     void reset() {
-        audioserial=new AudioSerial(baudrate);
-        textview.setText("Baudrate = " + baudrate);
-        baudrate += 20;
+        int baudRate = Integer.parseInt(baudRateEditText.getText().toString());
+        int sampleRate = Integer.parseInt(sampleRateEditText.getText().toString());
+        int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        if (bufferSize > 0) {
+            bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
+            audioserial=new AudioSerial(baudRate, sampleRate);
+        } else {
+            bufferSizeTextView.setText("Got invalid buffer size");
+        }
     }
 }
