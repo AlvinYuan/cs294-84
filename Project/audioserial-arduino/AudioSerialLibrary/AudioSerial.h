@@ -13,9 +13,7 @@ class AudioSerial
   private:
     int _pin;
     int _bps;
-    int _startingByte;
     boolean _readingBitState;
-    boolean _readingByteState;
     int _bitPower;
     int _receiveByte;
     int _byteBuffer;
@@ -24,7 +22,7 @@ class AudioSerial
     long _lastReadTime;
     	
   public:
-    AudioSerial(int pin,int bps,int startingByte);
+    AudioSerial(int pin,int bps);
     void run();
     int read();
     int getDelay();

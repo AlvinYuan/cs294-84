@@ -14,7 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static final int BAUD_RATE = 200;
+    private static int baudrate = 20;
+
     private static final int POLL_INTERVAL = 3000;//1000 / BAUD_RATE / 4;
     private static final int AUDIO_SERIAL_RECEIVE_AMPLITUDE_THRESHOLD = 300;
 
@@ -54,14 +55,12 @@ public class MainActivity extends Activity {
         micTextView = (TextView) findViewById(R.id.micTextView);
         doorTextView = (TextView) findViewById(R.id.doorTextView);
 
-        // Opening AudioSerial communication at 20 bits per second and with starting byte 138
         reset();
 
         releaseButton = (Button) findViewById(R.id.releaseButton);
         releaseButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                textview.setText("Congratulations. You came in like a wrecking ball.");
-                audioserial.send('R');
+                audioserial.send('R', true);
             }
         });
 
@@ -123,6 +122,8 @@ public class MainActivity extends Activity {
     }
 
     void reset() {
-        audioserial=new AudioSerial(BAUD_RATE,138);
+        audioserial=new AudioSerial(baudrate);
+        textview.setText("Baudrate = " + baudrate);
+        baudrate += 20;
     }
 }

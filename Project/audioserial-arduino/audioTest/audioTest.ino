@@ -21,10 +21,9 @@
 #include <AudioSerial.h>
 
 boolean debug;
-// Open audio serial communication on pin A0 at 200 bits per seconds
-// with starting byte 138
+// Open audio serial communication on pin A0
 // Change baudrate to match your app (may be 20)
-AudioSerial audioserial(A0,200,138);
+AudioSerial audioserial(A0,300);
 
 const int micOutputPin = 3;
 int previousValue = 0;
@@ -59,40 +58,28 @@ void loop(){
       Serial.println();
     } 
     
-    // send bytes through the microphone
-    if (Serial.available() > 0) {
-            // read the incoming byte:
-            incomingByte = Serial.read();
-            
-            if (incomingByte == 'a'){
-             digitalWrite(micOutputPin,HIGH);
-             Serial.println("you've received a danger message! correct message");
-            }else{            
-              digitalWrite(micOutputPin,LOW);
-            }
-  
-    }
+    
   } else {
     // Some Test Code
-//    delay(audioserial.getDelay() / 3);
-//    count=(count + 1) % 3;
-//    int value = analogRead(A0);
-//    if (previousValue == 0 && value == 0) {
-//      if (count == 0) {
-//        Serial.println(value);
-//      }
-//    } else {
-//      Serial.println(value);
-//      count = 0;
-//    }
-//    previousValue = value;
+    delay(audioserial.getDelay() / 3);
+    count=(count + 1) % 3;
+    int value = analogRead(A0);
+    if (previousValue == 0 && value == 0) {
+      if (count == 0) {
+        Serial.println(value);
+      }
+    } else {
+      Serial.println(value);
+      count = 0;
+    }
+    previousValue = value;
 
     // Other Test Code
 //    int value = digitalRead(A0) == HIGH;
 //    Serial.println(value);
-    if (Serial.available()) {
-      digitalWrite(13, HIGH);
-    }
+//    if (Serial.available()) {
+//      digitalWrite(13, HIGH);
+//    }
 //    if (mySerial.available()) {
 //      Serial.println("available");
 ////      Serial.write(mySerial.read());

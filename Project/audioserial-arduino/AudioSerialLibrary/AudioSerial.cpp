@@ -7,13 +7,11 @@
 #include "Arduino.h"
 #include "AudioSerial.h"
 
-AudioSerial::AudioSerial(int pin,int bps,int startingByte)
+AudioSerial::AudioSerial(int pin,int bps)
 {
   _pin = pin;
   _bps = bps;
-  _startingByte=startingByte;
   _readingBitState=false;
-  _readingByteState=false;
   _bitPower=1;
   _receiveByte=-1;
   _readIndex=0;
@@ -21,8 +19,8 @@ AudioSerial::AudioSerial(int pin,int bps,int startingByte)
 }
 
 void AudioSerial::run(){
-  long currentTime = millis();
-  if ( currentTime < _lastReadTime + 1000 / _bps) { // baudrate essentially halved to accommodate for new protocol of bit={bit,0}.
+  long currentTime = micros();
+  if ( currentTime < _lastReadTime + 1000000 / _bps) {
     return;
   }
 
@@ -33,7 +31,7 @@ void AudioSerial::run(){
  	 if(receiveBit==1){
      Serial.print("start bit found at ");
      Serial.println(currentTime);
-     _lastReadTime = currentTime + 1000 / _bps / 2; // offset to try to start in the middle of the first bit.
+     _lastReadTime = currentTime + 1000000 / _bps / 2; // offset to try to start in the middle of the first bit.
   	_readingBitState=true;
  	 _bitPower=1;
  	 _byteBuffer=0;
@@ -43,17 +41,14 @@ void AudioSerial::run(){
   Serial.print("read ");
   Serial.println(receiveBit);
   _lastReadTime = currentTime;
-	_byteBuffer+=receiveBit*_bitPower;
+	_byteBuffer+=(receiveBit ? 0 : 1)*_bitPower;
         _bitPower=_bitPower*2;
         _reads[_readIndex++]=currentTime;
   	if(_bitPower==256){	
  		_readingBitState=false;
 	
- 		if(_readingByteState){
 		_receiveByte=_byteBuffer;
- 		}else if(_byteBuffer==_startingByte){
-		_readingByteState=true;		
-		}
+
 	}
         
   }
