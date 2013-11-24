@@ -32,6 +32,10 @@
             android:name="com.audioserial.servocontrol.AlertsLog"
             android:label="@string/title_activity_alerts_log" >
         </activity>
+        <activity
+            android:name="com.audioserial.servocontrol.AlertsMap"
+            android:label="@string/title_activity_alerts_map" >
+        </activity>
     </application>
 
 </manifest>
