@@ -4,5 +4,8 @@
     <string name="app_name">ServoControl</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="title_activity_send_message_actvity">Send_message_actvity</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_alerts_log">AlertsLog</string>
 
 </resources>
