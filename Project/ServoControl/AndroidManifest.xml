@@ -24,6 +24,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.audioserial.servocontrol.Send_message_actvity"
+            android:label="@string/title_activity_send_message_actvity" >
+        </activity>
+        <activity
+            android:name="com.audioserial.servocontrol.AlertsLog"
+            android:label="@string/title_activity_alerts_log" >
+        </activity>
+        <activity
+            android:name="com.audioserial.servocontrol.AlertsMap"
+            android:label="@string/title_activity_alerts_map" >
+        </activity>
     </application>
 
 </manifest>
