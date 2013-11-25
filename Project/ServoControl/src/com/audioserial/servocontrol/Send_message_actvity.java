@@ -1,6 +1,5 @@
 package com.audioserial.servocontrol;
 
-import android.R;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Bundle;
@@ -15,7 +14,7 @@ import android.widget.TextView;
 public class Send_message_actvity extends Activity {
 	Button sendMessageButton, seeAlertsLog, seeAlertsMap;
     TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView;
-    RadioButton fire, eq, flood, chem, gun, other;
+//    RadioButton fire, eq, flood, chem, gun, other;
     
     AudioSerial audioserial = new AudioSerial();;
 
@@ -28,16 +27,16 @@ public class Send_message_actvity extends Activity {
         baudRateEditText = (TextView) findViewById(R.id.BaudRateEditText);
         sampleRateEditText = (TextView) findViewById(R.id.SampleRateEditText);
         bufferSizeTextView = (TextView) findViewById(R.id.BufferSizeTextView);
-        fire = (RadioButton) findViewById(R.id.fire);
-        eq = (RadioButton) findViewById(R.id.eq);
-        flood = (RadioButton) findViewById(R.id.flood);
-        chem = (RadioButton) findViewById(R.id.chem);
-        gun = (RadioButton) findViewById(R.id.gun);
-        other = (RadioButton) findViewById(R.id.fire);
+//        fire = (RadioButton) findViewById(R.id.fire);
+//        eq = (RadioButton) findViewById(R.id.eq);
+//        flood = (RadioButton) findViewById(R.id.flood);
+//        chem = (RadioButton) findViewById(R.id.chem);
+//        gun = (RadioButton) findViewById(R.id.gun);
+//        other = (RadioButton) findViewById(R.id.fire);
         
         reset();
 
-		sendMessageButton = (Button) findViewById(R.id.SendMessageButton);
+//		sendMessageButton = (Button) findViewById(R.id.SendMessageButton);
 		sendMessageButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 audioserial.send(" ABCDEFGHIJKLMNOPQRSTUVWXYZ", true);
