@@ -1,0 +1,6 @@
+enum TX_state {
+  TX_AVAILABLE,
+  TX_LONG_START,
+  TX_STOP1,
+  TX_TRANSMIT
+};

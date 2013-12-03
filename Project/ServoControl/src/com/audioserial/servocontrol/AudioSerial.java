@@ -18,7 +18,7 @@ public class AudioSerial {
     // GENERAL
     public static final int BITS_PER_BYTE = 10;
     public static final char MESSAGE_DELIMITER = '\n';
-    public static final int MAX_MESSAGE_SIZE = 1;
+    public static final int MAX_MESSAGE_SIZE = 10;
     public static final int NO_INDEX_FOUND = -1;
 
     int sampleRate = 44100;
@@ -28,7 +28,7 @@ public class AudioSerial {
     TextView sensorReading;
 
     // TX
-    int baudrateTX = 300;
+    int baudrateTX;
     AudioTrack audiotrack;
     short[] low;
     short[] high;
@@ -39,7 +39,7 @@ public class AudioSerial {
     private static final int MIC_SERIAL_THRESHOLD = 10000;
     private static final int RX_POLL_INTERVAL = 500;// every half second
 
-    int baudrateRX = 20;
+    int baudrateRX;
     SoundMeter micAmplitudeSensor = new SoundMeter();
     AudioRecord audiorecord = null;
 
@@ -138,15 +138,13 @@ public class AudioSerial {
         pollCountRX = 0;
 
         bufferSizeRX =
-                (sampleRate * 1) +                                            // one second start bit
-                (sampleRate * 1 / baudrateRX) +                                 // one stop bit
-                (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
-
-        // DEBUGGING
-        bufferSizeRX = sampleRate * 2; // 2 seconds
+            (sampleRate * 1) +                                              // one second start bit
+            (sampleRate * 1 / baudrateRX) +                                 // one stop bit
+            (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
 
         int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        bufferSizeRX = bufferSizeRX < minBufferSize ? minBufferSize : bufferSizeRX; // ensure bufferSize is large enough
+        // Ensure buffer size is large enough to instantiate AudioRecord. Since bufferRX is shorts, this will actually be at least twice the minimum size.
+        bufferSizeRX = bufferSizeRX < minBufferSize ? minBufferSize : bufferSizeRX;
 
         bufferRX = new short[bufferSizeRX];
     }
@@ -193,12 +191,15 @@ public class AudioSerial {
 
         micAmplitudeSensor.stop(); // also releases resources
         audiorecord.startRecording();
+        // Record message
         audiorecord.read(bufferRX, 0, bufferRX.length); // blocks until read finishes
         audiorecord.stop();
         audiorecord.release();
         audiorecord = null;
-        parsePacket();
         micAmplitudeSensor.start();
+
+        // Parse message
+        parsePacket();
     }
 
     public void parsePacket() {
@@ -213,21 +214,26 @@ public class AudioSerial {
         bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, false);
         if (bufferIndex == NO_INDEX_FOUND) {
             // No stop bit found. Do not continue parsing
+            System.out.println("No stop bit found");
             return;
         }
 
         customMessage += bufferIndex + " first stop bit " + runningAverageMagnitude[bufferIndex] + "\n";
-
+        bufferIndex += bitlengthRX(); // shouldn't be necessary, but it seems to help with the first byte's reading
         // Parse Packet
         for (int packetIndex = 0; packetIndex < MAX_MESSAGE_SIZE; packetIndex++) {
             // Find the start bit
             bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, true);
             if (bufferIndex == NO_INDEX_FOUND) {
                 // No start bit found. Do not continue parsing
+                System.out.println("No start bit found " + packetIndex);
+                System.out.println(customMessage);
                 return;
             }
 
-            customMessage += bufferIndex + " start bit " + runningAverageMagnitude[bufferIndex] + "\n";
+            if (packetIndex == 0) {
+                customMessage += bufferIndex + " start bit " + runningAverageMagnitude[bufferIndex] + "\n";
+            }
 
             // Offset to the middle of the bit
             bufferIndex += bitlengthRX() / 2;
@@ -239,16 +245,23 @@ public class AudioSerial {
             for (int bitIndex = 0; bitIndex < 8; bitIndex++) {
                 int bit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD ? 1 : 0;
                 c = (char) (c | (bit << bitIndex));
-//                customMessage += runningAverageMagnitude[bufferIndex] + " ";
+                if (packetIndex == 0) {
+                    customMessage += runningAverageMagnitude[bufferIndex] + " ";
+                    customMessageTextView.setText(customMessage);
+                }
                 bufferIndex += bitlengthRX();
+            }
+            if (packetIndex == 0) {
+                customMessage += "\n";
             }
 
             // If found message delimiter character, stop parsing
+            System.out.println(c);
             if (c == MESSAGE_DELIMITER) {
+                packetString+="\\n";
                 break;
             }
             packetString += c;
-//            customMessage += "\n";
         }
         customMessage += packetString;
 

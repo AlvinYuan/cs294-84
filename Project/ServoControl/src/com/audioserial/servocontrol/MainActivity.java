@@ -82,7 +82,7 @@ public class MainActivity extends Activity {
         int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
-            audioserial.reset(baudRate, 20, sampleRate);
+            audioserial.reset(baudRate, 100, sampleRate);
             audioserial.sensorReading = sensorReading;
             audioserial.customMessageTextView = customMessageTextView;
         } else {
