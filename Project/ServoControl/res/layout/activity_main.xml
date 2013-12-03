@@ -93,4 +93,13 @@
         android:layout_toRightOf="@+id/DangerButton"
         android:text="SOS" />
 
+    <TextView
+        android:id="@+id/CustomMessageTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/resetButton"
+        android:text="Custom Message"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </RelativeLayout>

@@ -50,7 +50,7 @@ public class Send_message_actvity extends Activity {
         int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
-            audioserial.reset(baudRate, sampleRate);
+//            audioserial.reset(baudRate, sampleRate);
             audioserial.sensorReading = sensorReading;
         } else {
             bufferSizeTextView.setText("Got invalid buffer size");

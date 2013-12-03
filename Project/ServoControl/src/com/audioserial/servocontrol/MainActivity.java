@@ -16,9 +16,9 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
     Button dangerButton, sosButton, resetButton;
-    TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView;
+    TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView, customMessageTextView;
 
-    AudioSerial audioserial = new AudioSerial();;
+    AudioSerial audioserial = new AudioSerial();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
         baudRateEditText = (TextView) findViewById(R.id.BaudRateEditText);
         sampleRateEditText = (TextView) findViewById(R.id.SampleRateEditText);
         bufferSizeTextView = (TextView) findViewById(R.id.BufferSizeTextView);
+        customMessageTextView = (TextView) findViewById(R.id.CustomMessageTextView);
 
         reset();
 
@@ -81,8 +82,9 @@ public class MainActivity extends Activity {
         int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
-            audioserial.reset(baudRate, sampleRate);
+            audioserial.reset(baudRate, 20, sampleRate);
             audioserial.sensorReading = sensorReading;
+            audioserial.customMessageTextView = customMessageTextView;
         } else {
             bufferSizeTextView.setText("Got invalid buffer size");
         }

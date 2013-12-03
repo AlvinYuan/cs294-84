@@ -8,66 +8,73 @@ package com.audioserial.servocontrol;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.os.Handler;
 import android.widget.TextView;
 
 public class AudioSerial {
-    // TX
+    // GENERAL
     public static final int BITS_PER_BYTE = 10;
     public static final char MESSAGE_DELIMITER = '\n';
-    // RX
-    private static final int POLL_INTERVAL = 500;// every half second
+    public static final int MAX_MESSAGE_SIZE = 1;
+    public static final int NO_INDEX_FOUND = -1;
 
-    // GENERAL
-    int baudrate = 300;
     int sampleRate = 44100;
 
+    // Debugging
+    TextView customMessageTextView;
+    TextView sensorReading;
+
     // TX
+    int baudrateTX = 300;
     AudioTrack audiotrack;
     short[] low;
     short[] high;
     short[] endTrack;
 
     // RX
-    boolean stopped = true;
-    int updateCount = 0;
-    TextView sensorReading;
-    SoundMeter mSensor = new SoundMeter();
-    Handler mHandler = new Handler();
-    Runnable mPollTask = new Runnable() {
+    // Special Protocol: receive one second start bit, then stop bit, then packet.
+    private static final int MIC_SERIAL_THRESHOLD = 10000;
+    private static final int RX_POLL_INTERVAL = 500;// every half second
+
+    int baudrateRX = 20;
+    SoundMeter micAmplitudeSensor = new SoundMeter();
+    AudioRecord audiorecord = null;
+
+    boolean isPollingRX = false;
+    int pollCountRX = 0;
+    int bufferSizeRX;
+    short[] bufferRX;
+
+    Handler handlerRX = new Handler();
+    Runnable pollTaskRX = new Runnable() {
         public void run() {
-            int amp = mSensor.getAmplitude();
-
-            if (sensorReading != null) {
-                updateCount++;
-                sensorReading.setText("Sensor Reading: " + amp + "\nUpdate " + updateCount);
-            }
-
-            if (!stopped) {
-                mHandler.postDelayed(mPollTask, POLL_INTERVAL);
-            }
+            pollTaskRun();
         }
     };
 
     // GENERAL METHODS
-    public void reset(int baudrate, int sampleRate) {
-        this.baudrate = baudrate;
+    public void reset(int baudrateTX, int baudrateRX, int sampleRate) {
+        this.baudrateTX = baudrateTX;
+        this.baudrateRX = baudrateRX;
         this.sampleRate = sampleRate;
         resetTX();
-    }
-
-    private int bitlength() {
-        return sampleRate/baudrate;
+        resetRX();
     }
 
     // TX METHODS
+    private int bitlengthTX() {
+        return sampleRate/baudrateTX;
+    }
+
     private int TXbufferSize() {
         return AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
     }
 
     private void resetTX() {
-        int bitlength = bitlength();
+        int bitlength = bitlengthTX();
         int TXbufferSize = TXbufferSize();
 
         // Initialization of low and high waveforms
@@ -103,7 +110,7 @@ public class AudioSerial {
 
     // Sending one byte starting from the least significant bit
     public void send(int val, boolean isInverted) {
-        int bitlength = bitlength();
+        int bitlength = bitlengthTX();
 
         // Start bit
         audiotrack.write(high, 0, bitlength);
@@ -123,24 +130,163 @@ public class AudioSerial {
     }
 
     // RX METHODS
-    public void resetRX() {
+    public int bitlengthRX() {
+        return sampleRate / baudrateRX;
+    }
 
+    public void resetRX() {
+        pollCountRX = 0;
+
+        bufferSizeRX =
+                (sampleRate * 1) +                                            // one second start bit
+                (sampleRate * 1 / baudrateRX) +                                 // one stop bit
+                (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
+
+        // DEBUGGING
+        bufferSizeRX = sampleRate * 2; // 2 seconds
+
+        int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        bufferSizeRX = bufferSizeRX < minBufferSize ? minBufferSize : bufferSizeRX; // ensure bufferSize is large enough
+
+        bufferRX = new short[bufferSizeRX];
     }
 
     public void startRX() {
-        if (stopped) {
-            stopped = false;
-            mSensor.start();
-            mHandler.postDelayed(mPollTask, POLL_INTERVAL);
+        if (!isPollingRX) {
+            isPollingRX = true;
+            micAmplitudeSensor.start();
+            handlerRX.postDelayed(pollTaskRX, RX_POLL_INTERVAL);
         }
     }
 
     public void stopRX() {
-        if (!stopped) {
-            stopped = true;
-            mHandler.removeCallbacks(mPollTask);
-            mSensor.stop();
+        if (isPollingRX) {
+            isPollingRX = false;
+            handlerRX.removeCallbacks(pollTaskRX);
+            micAmplitudeSensor.stop();
         }
     }
 
+    public void pollTaskRun() {
+        pollCountRX++;
+
+        int micPolledAmplitude = micAmplitudeSensor.getAmplitude();
+
+        if (micPolledAmplitude > MIC_SERIAL_THRESHOLD) {
+            receivePacket(); // long operation
+        }
+
+        if (sensorReading != null) {
+            sensorReading.setText("Sensor Reading: " + micPolledAmplitude + "\nUpdate " + pollCountRX);
+        }
+
+        if (isPollingRX) {
+            handlerRX.postDelayed(pollTaskRX, RX_POLL_INTERVAL);
+        }
+    }
+
+    public void receivePacket() {
+        audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                                      sampleRate, 
+                                      AudioFormat.CHANNEL_IN_MONO, 
+                                      AudioFormat.ENCODING_PCM_16BIT, bufferSizeRX * 2); // multiply bufferSizeRX by 2 since samples are shorts, not bytes
+
+        micAmplitudeSensor.stop(); // also releases resources
+        audiorecord.startRecording();
+        audiorecord.read(bufferRX, 0, bufferRX.length); // blocks until read finishes
+        audiorecord.stop();
+        audiorecord.release();
+        audiorecord = null;
+        parsePacket();
+        micAmplitudeSensor.start();
+    }
+
+    public void parsePacket() {
+        String customMessage = "Parsed Packet\n";
+        String packetString = "";
+
+        int[] runningAverageMagnitude = computeRunningAverageMagnitude();
+
+        int bufferIndex = 0;
+
+        // Find the first stop bit
+        bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, false);
+        if (bufferIndex == NO_INDEX_FOUND) {
+            // No stop bit found. Do not continue parsing
+            return;
+        }
+
+        customMessage += bufferIndex + " first stop bit " + runningAverageMagnitude[bufferIndex] + "\n";
+
+        // Parse Packet
+        for (int packetIndex = 0; packetIndex < MAX_MESSAGE_SIZE; packetIndex++) {
+            // Find the start bit
+            bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, true);
+            if (bufferIndex == NO_INDEX_FOUND) {
+                // No start bit found. Do not continue parsing
+                return;
+            }
+
+            customMessage += bufferIndex + " start bit " + runningAverageMagnitude[bufferIndex] + "\n";
+
+            // Offset to the middle of the bit
+            bufferIndex += bitlengthRX() / 2;
+            // Offset to the first bit
+            bufferIndex += bitlengthRX();
+
+            // Read byte
+            char c = 0;
+            for (int bitIndex = 0; bitIndex < 8; bitIndex++) {
+                int bit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD ? 1 : 0;
+                c = (char) (c | (bit << bitIndex));
+//                customMessage += runningAverageMagnitude[bufferIndex] + " ";
+                bufferIndex += bitlengthRX();
+            }
+
+            // If found message delimiter character, stop parsing
+            if (c == MESSAGE_DELIMITER) {
+                break;
+            }
+            packetString += c;
+//            customMessage += "\n";
+        }
+        customMessage += packetString;
+
+        customMessageTextView.setText(customMessage);
+    }
+
+    private int[] computeRunningAverageMagnitude() {
+        // Compute running average of bufferRX
+        int bitlengthAveragingFactor = 10; // somewhat arbitrary, should be > 2
+        int numSamplesInAverage = bitlengthRX() / bitlengthAveragingFactor;
+        int[] runningAverageMagnitude = new int[bufferRX.length - numSamplesInAverage];
+        for (int i = 0; i < runningAverageMagnitude.length; i++) {
+            runningAverageMagnitude[i] = 0;
+            for (int j = 0; j < numSamplesInAverage; j++) {
+                runningAverageMagnitude[i] += Math.abs(bufferRX[i+j]);
+            }
+            runningAverageMagnitude[i] = runningAverageMagnitude[i] / numSamplesInAverage;
+        }
+        return runningAverageMagnitude;
+    }
+
+    private int nextBitIndex(int[] runningAverageMagnitude, int initialBufferIndex, boolean lookingForHighBit) {
+        int bufferIndex = initialBufferIndex;
+
+        while (true) {
+            if (bufferIndex >= runningAverageMagnitude.length) {
+                return NO_INDEX_FOUND;
+            }
+
+            boolean isHighBit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD;
+            if (isHighBit && lookingForHighBit) {
+                return bufferIndex;
+            }
+            if (!isHighBit && !lookingForHighBit) {
+                return bufferIndex;
+            }
+
+            bufferIndex++;
+        }
+    }
 }

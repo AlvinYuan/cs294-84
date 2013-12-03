@@ -1,7 +1,8 @@
 package com.audioserial.servocontrol;
 
 /*
- * Based on Google NoiseAlert
+ * Based on Google NoiseAlert by Bernhard.R.Suter@gmail.com
+ * https://code.google.com/p/android-labs/wiki/NoiseAlert
  */
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ public class SoundMeter {
                         e.printStackTrace();
                     }
                     mRecorder.start();
+                    mRecorder.getMaxAmplitude(); // to get rid of initial 0 return value
                 }
         }
         public void stop() {
