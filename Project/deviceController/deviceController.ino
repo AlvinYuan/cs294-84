@@ -22,17 +22,18 @@ const long BITS_PER_BYTE = 10;
 const long ONE_SECOND_IN_MICROS = 1000000;
 const uint64_t RADIO_PIPE = 0xF0F0F0F0E1LL; // Radio pipe address for nordics to communicate.
 
-// Pins
-const int audioSerialRX = 2;
-const int audioSerialTX = 3;
+// Pins. Commented numbers = pins for breadboard
+const int audioSerialRX = 7; // 2
+const int audioSerialTX = 6; // 3
 const int DO_NOT_USE_PIN = A4;
-const int radioCE = 9;
-const int radioCS = 10;
-const int dangerButton = 7;
-const int sosSwitch = 8;
-const int dangerNearbyLED = 4;
-const int sosOnLED = 5;
-const int sosNearbyLED = 6;
+const int radioCE = 10; // 9
+const int radioCS = 9; // 10
+const int dangerButton = A7; // 7
+const int sosSwitch = 20;  // 8
+const int dangerNearbyLED = 19; // 4
+const int sosOnLED = 16; // 5
+const int sosNearbyLED = 18; // 6
+const int piezoSpeaker = 8; // X
 
 // Packet Buffers
 char readAudioSerialPacket[MAX_PACKET_SIZE];
