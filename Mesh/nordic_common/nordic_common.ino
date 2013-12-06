@@ -124,8 +124,8 @@ void loop(void)
         Serial.println("Sending Danger Message");
         radio.stopListening();
         radio.openWritingPipe(pipe);
-        char message[7] = "Danger";
-        bool delivered = radio.write(message, 6);
+        char message[8] = "Danger\n";
+        bool delivered = radio.write(message, 7);
         radio.openReadingPipe(0, pipe);
         radio.startListening();
         if (delivered) {

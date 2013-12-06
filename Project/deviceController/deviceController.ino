@@ -28,11 +28,11 @@ const int audioSerialTX = 3;
 const int DO_NOT_USE_PIN = A4;
 const int radioCE = 9;
 const int radioCS = 10;
-const int dangerLED = 4;
-const int sosLED = 5;
-const int thirdLED = 6;
 const int dangerButton = 7;
 const int sosSwitch = 8;
+const int dangerNearbyLED = 4;
+const int sosOnLED = 5;
+const int sosNearbyLED = 6;
 
 // Packet Buffers
 char readAudioSerialPacket[MAX_PACKET_SIZE];
@@ -64,16 +64,16 @@ RF24 radio(radioCE, radioCS);
 long lastDebounceTime = 0;  // the last time the output pin was toggled
 long debounceDelay = 50;    // the debounce time; increase if the output flickers
 int buttonState;             // the current reading from the input pin
-int lastButtonState = LOW;   // the previous reading from the input pin
+int lastButtonState = HIGH;   // the previous reading from the input pin
 
 // SOS Switch
 long lastSosSendTime = 0;
 const long sosSendPeriod = 5000;
 
 // LEDs
-int dangerLEDState = LOW;
-int sosLEDState = LOW;
-int thirdLEDState = LOW;
+int sosOnLEDState = LOW;
+long lastSosReceivedTime = 0;
+long lastDangerReceivedTime = 0;
 
 // Prepare communication channels and initial state
 void setup(){
@@ -93,21 +93,19 @@ void setup(){
   radio.startListening(); // Start listening
 
   // LEDs and Sensors
-//  pinMode(dangerLED, OUTPUT);
-//  digitalWrite(dangerLED, LOW);
-//  pinMode(sosLED, OUTPUT);
-//  digitalWrite(sosLED, LOW);
-//  pinMode(thirdLED, OUTPUT);
-//  digitalWrite(thirdLED, LOW);
-//  pinMode(dangerButton, INPUT_PULLUP);
-//  pinMode(sosSwitch, INPUT_PULLUP);
+  pinMode(dangerButton, INPUT_PULLUP);
+  pinMode(sosSwitch, INPUT_PULLUP);
+  pinMode(sosOnLED, OUTPUT);
+  pinMode(dangerNearbyLED, OUTPUT);
+  pinMode(sosNearbyLED, OUTPUT);
 }
 
 void loop(){
   if (readRadio()) {
-    // TODO: buffer radio messages
-    readRadioPacket[readRadioPacketSize] = 0; // TODO: check if necessary. Also check for double \n with preparePacketTX
-    sendAudioSerialPacket(readRadioPacket);
+    // TODO: buffer radio messagess
+    Serial.print(readRadioPacket);
+    Serial.print(readRadioPacketSize);
+    sendAudioSerialPacket(readRadioPacket, readRadioPacketSize);
     // TODO: parse packet and do special behavior
 
     // Clear packet data
@@ -118,18 +116,31 @@ void loop(){
     if (sendRadioPacket(readAudioSerialPacket, readAudioSerialPacketSize)) {
       Serial.println("sent");
     }
-    // For Testing
-//    thirdLEDState = thirdLEDState == HIGH ? LOW : HIGH;
     Serial.println(readAudioSerialPacket);
 
     // Clear packet data
     memset(readAudioSerialPacket, 0, readAudioSerialPacketSize);
   }
+
   audioSerialTXLoop();
-//  buttonLoop();
-//  digitalWrite(dangerLED, dangerLEDState);
-//  digitalWrite(sosLED, sosLEDState);
-//  digitalWrite(thirdLED, thirdLEDState);
+
+  dangerButtonLoop();
+
+  sosSwitchLoop();
+
+  // TESTING ONLY
+  long currentTime = millis();
+  int dangerNearbyLEDState = currentTime - lastDangerReceivedTime > 5000 ? LOW : HIGH;
+  int sosNearbyLEDState = currentTime - lastSosReceivedTime > 5000 ? LOW : HIGH;
+  if (currentTime - lastDangerReceivedTime > 10000) {
+    lastDangerReceivedTime = currentTime;
+    lastSosReceivedTime = currentTime;
+  }
+  
+  // Update LEDs
+  digitalWrite(sosOnLED, sosOnLEDState);
+  digitalWrite(dangerNearbyLED, dangerNearbyLEDState);
+  digitalWrite(sosNearbyLED, sosNearbyLEDState);
 }
 
 /********************
@@ -207,6 +218,83 @@ void audioSerialTXLoop() {
 }
 
 /********************
+-- readAudioSerial
+
+Returns true if we received a packet on the audioSerial connection.
+If we did, modifies readAudioSerialPacket and readAudioSerialPacketSize with the read data.
+readAudioSerialPacket should be well-formed, but that is up to the sender.
+********************/
+boolean readAudioSerial() {
+  boolean received = false;
+  if (audioSerial.available()) {
+    readAudioSerialPacketSize = audioSerial.readBytesUntil(PACKET_DELIMITER, readAudioSerialPacket, MAX_PACKET_SIZE);
+    received = true;
+  }
+  return received;
+}
+
+/********************
+-- readRadio
+
+Returns true if we received a packet on the radio.
+If we did, modifies readRadioPacket and readRadioPacketSize with the read data.
+readRadioPacket should be well-formed, but that is up to the sender.
+TODO: handle case if packet spans more than one radio packet.
+********************/
+boolean readRadio() {
+  boolean received = false;
+  if (radio.available()) {
+    readRadioPacketSize = radio.getPayloadSize();
+    received = radio.read(readRadioPacket, readRadioPacketSize);
+    // Find PACKET_DELIMITER
+    for (int i = 0; i < readRadioPacketSize; i++) {
+      if (readRadioPacket[i] == PACKET_DELIMITER) {
+        readRadioPacketSize = i + 1;
+        break;
+      }
+    }
+  }
+  return received;
+}
+
+/********************
+-- sendAudioSerialPacket
+
+Prepares sendingAudioSerialPacket and audioSerialTX_State for sending.
+Packet should already be well-formed
+Does nothing if audioSerialTX_State is not TX_AVAILABLE. Caller may want to check this as well.
+********************/
+void sendAudioSerialPacket(char packet[], int length) {
+  if (audioSerialStateTX != TX_AVAILABLE) {
+    return;
+  }
+  
+  // Copy packet to sendingAudioSerialPacket
+  // TODO: use faster method. memcpy?
+  for (int i = 0; i < length; i++) {
+    sendingAudioSerialPacket[i] = packet[i];
+  }
+  sendingAudioSerialPacketSize = length;
+}
+
+/********************
+-- sendRadioPacket
+
+Broadcasts a packet via the radio.
+Packet should already be well-formed.
+Returns true if the packet was successfully delivered (someone received it and ACKed).
+********************/
+boolean sendRadioPacket(char packet[], int length) {
+  radio.stopListening();
+  radio.openWritingPipe(RADIO_PIPE);
+
+  boolean delivered = radio.write(packet, length);
+  radio.openReadingPipe(0, RADIO_PIPE);
+  radio.startListening();
+  return delivered;
+}
+
+/******************** 
 -- updateStateTX
 
 State update function for audioSerial TX.
@@ -235,78 +323,14 @@ void updateStateTX(AudioSerialTX_State newState) {
 }
 
 /********************
--- sendAudioSerialPacket
+-- dangerButtonLoop
 
-Prepares sendingAudioSerialPacket and audioSerialTX_State for sending. 
-Does nothing if audioSerialTX_State is not TX_AVAILABLE. Caller may want to check this as well.
+Code to check whether the danger button has been pressed.
+This should run in the main loop.
+Based on Debounce example sketch (I think?)
 ********************/
-void sendAudioSerialPacket(String str) {
-  if (audioSerialStateTX != TX_AVAILABLE) {
-    return;
-  }
-  
-  // Copy string to packetTX
-  str.toCharArray(sendingAudioSerialPacket, MAX_PACKET_SIZE); // Also copies null character
-
-  // Append packet delimiter char
-  int len = str.length();
-  sendingAudioSerialPacket[len] = PACKET_DELIMITER; // add PACKET_DELIMITER
-  sendingAudioSerialPacketSize = len + 1;
-}
-
-/********************
--- readAudioSerial
-
-Returns true if we received a packet on the audioSerial connection.
-If we did, modifies readAudioSerialPacket and readAudioSerialPacketSize with the read data.
-readAudioSerialPacket should be well-formed, but that is up to the sender.
-********************/
-boolean readAudioSerial() {
-  boolean received = false;
-  if (audioSerial.available()) {
-    readAudioSerialPacketSize = audioSerial.readBytesUntil(PACKET_DELIMITER, readAudioSerialPacket, MAX_PACKET_SIZE);
-    received = true;
-  }
-  return received;
-}
-
-/********************
--- readRadio
-
-Returns true if we received a packet on the radio.
-If we did, modifies readRadioPacket and readRadioPacketSize with the read data.
-readRadioPacket should be well-formed, but that is up to the sender.
-********************/
-boolean readRadio() {
-  boolean received = false;
-  if (radio.available()) {
-    readRadioPacketSize = radio.getPayloadSize();
-    received = radio.read(readRadioPacket, readRadioPacketSize);
-  }
-  return received;
-}
-
-/********************
--- sendRadioPacket
-
-Broadcasts a packet via the radio.
-Packet should already be well-formed.
-Returns true if the packet was successfully delivered (someone received it and ACKed).
-********************/
-boolean sendRadioPacket(char packet[], int length) {
-  radio.stopListening();
-  radio.openWritingPipe(RADIO_PIPE);
-
-  boolean delivered = radio.write(packet, length);
-  radio.openReadingPipe(0, RADIO_PIPE);
-  radio.startListening();
-  return delivered;
-}
-
-
-
-void buttonLoop() {
-    // read the state of the switch into a local variable:
+void dangerButtonLoop() {
+  // read the state of the button
   int reading = digitalRead(dangerButton);
 
   // check to see if you just pressed the button 
@@ -329,9 +353,7 @@ void buttonLoop() {
 
       // Button Pressed
       if (buttonState == LOW) {
-        // TODO: message protocol
-        char message[] = "|D|\n";
-        sendRadioPacket(message, 7);
+        dangerButtonPressed();
       }
     }
   }
@@ -341,19 +363,36 @@ void buttonLoop() {
   lastButtonState = reading;
 }
 
+/********************
+-- dangerButtonPressed
+
+Broadcast a danger message via radio.
+TODO: update message sent once protocol is fleshed out.
+********************/
+void dangerButtonPressed() {
+  Serial.println("Danger button pressed");
+  char packet[] = "|D|\n";
+  sendRadioPacket(packet,5);
+}
+
+/********************
+-- sosSwitchLoop
+
+Code to check whether the SOS switch is on and periodically send SOS messages.
+This should run in the main loop.
+TODO: update message sent once protocol is fleshed out.
+********************/
 void sosSwitchLoop() {
+  int reading = digitalRead(sosSwitch);
+  sosOnLEDState = reading == HIGH ? LOW : HIGH;
+
   long currentTime = millis();
   if (currentTime - lastSosSendTime > sosSendPeriod) {
-    int reading = digitalRead(sosSwitch);
-
-    // For Testing
-    sosLEDState = reading;
 
     if (reading == LOW) {
-      // TODO: custom message
-      // TODO: message protocol
+      Serial.println("SOS sending");
       char message[] = "|S|\n";
-      sendRadioPacket(message, 7);
+      sendRadioPacket(message, 5);
       lastSosSendTime = currentTime;
     }
   }
