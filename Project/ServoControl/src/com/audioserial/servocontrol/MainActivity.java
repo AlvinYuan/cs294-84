@@ -15,7 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    Button dangerButton, sosButton, resetButton;
+    Button dangerButton, sosButton, resetButton, newpage;
     TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView, customMessageTextView;
 
     AudioSerial audioserial = new AudioSerial();
@@ -32,7 +32,14 @@ public class MainActivity extends Activity {
         sampleRateEditText = (TextView) findViewById(R.id.SampleRateEditText);
         bufferSizeTextView = (TextView) findViewById(R.id.BufferSizeTextView);
         customMessageTextView = (TextView) findViewById(R.id.CustomMessageTextView);
-
+        newpage = (Button) findViewById(R.id.newB);
+        final Context self = this;
+        newpage.setOnClickListener(new OnClickListener() {
+        	public void onClick(View v){
+        		Intent newIntent = new Intent(self, Send_message_actvity.class);
+        		startActivity(newIntent);
+        	}
+        });
         reset();
 
         dangerButton = (Button) findViewById(R.id.DangerButton);
