@@ -23,9 +23,9 @@ const long ONE_SECOND_IN_MICROS = 1000000;
 const uint64_t RADIO_PIPE = 0xF0F0F0F0E1LL; // Radio pipe address for nordics to communicate.
 
 // Pins
-const int audioSerialRX = 10;
-const int audioSerialTX = 3; // try to stick to pin 3 or 11 here. See comments for setPwmFrequency()
-const int DO_NOT_USE_PIN = 11;
+const int audioSerialRX = 2;
+const int audioSerialTX = 3;
+const int DO_NOT_USE_PIN = A4;
 const int radioCE = 9;
 const int radioCS = 10;
 const int dangerLED = 4;
@@ -35,8 +35,12 @@ const int dangerButton = 7;
 const int sosSwitch = 8;
 
 // Packet Buffers
-char packetRX[MAX_PACKET_SIZE];
-char packetTX[MAX_PACKET_SIZE];
+char readAudioSerialPacket[MAX_PACKET_SIZE];
+int readAudioSerialPacketSize;
+char readRadioPacket[MAX_PACKET_SIZE];
+int readRadioPacketSize;
+char sendingAudioSerialPacket[MAX_PACKET_SIZE];
+int sendingAudioSerialPacketSize;
 
 // AudioSerial
 SoftwareSerial audioSerial(audioSerialRX, DO_NOT_USE_PIN, true); // inverted logic (logical 1 = LOW voltage, logical 0 = HIGH voltage)
@@ -48,15 +52,13 @@ const long LONG_START_BIT_MICROS = ONE_SECOND_IN_MICROS;
 const long STOP1_BIT_MICROS = microsPerBit;
 
 // TX State
-TX_state stateTX;
-int TX_TRANSMIT_packetIndex = 0;
-long startSendTime;
+AudioSerialTX_State audioSerialStateTX;
+int TX_TRANSMIT_packetIndex;
+long sendAudioSerialPacketStartTime;
 
 // Nordic Radio
 // Set up nRF24L01 radio on SPI bus plus pins radioCE and radioCS
 RF24 radio(radioCE, radioCS);
-char readMessage[MAX_PACKET_SIZE];
-int readMessageSize = 0;
 
 // Danger Button
 long lastDebounceTime = 0;  // the last time the output pin was toggled
@@ -82,7 +84,6 @@ void setup(){
   // AudioSerial
   audioSerial.begin(baudrateRX);
   pinMode(audioSerialTX, OUTPUT);
-  setPwmFrequency(audioSerialTX, 8); // Increase the PWM frequency of audioSerialTX
   updateStateTX(TX_AVAILABLE);
   
   // Setup and configure rf radio
@@ -92,68 +93,68 @@ void setup(){
   radio.startListening(); // Start listening
 
   // LEDs and Sensors
-  pinMode(dangerLED, OUTPUT);
-  digitalWrite(dangerLED, LOW);
-  pinMode(sosLED, OUTPUT);
-  digitalWrite(sosLED, LOW);
-  pinMode(thirdLED, OUTPUT);
-  digitalWrite(thirdLED, LOW);
-  pinMode(dangerButton, INPUT_PULLUP);
-  pinMode(sosSwitch, INPUT_PULLUP);
+//  pinMode(dangerLED, OUTPUT);
+//  digitalWrite(dangerLED, LOW);
+//  pinMode(sosLED, OUTPUT);
+//  digitalWrite(sosLED, LOW);
+//  pinMode(thirdLED, OUTPUT);
+//  digitalWrite(thirdLED, LOW);
+//  pinMode(dangerButton, INPUT_PULLUP);
+//  pinMode(sosSwitch, INPUT_PULLUP);
 }
 
 void loop(){
-  if (checkForRadioMessageLoop()) {
+  if (readRadio()) {
     // TODO: buffer radio messages
-    preparePacketTX(readMessage);
+    readRadioPacket[readRadioPacketSize] = 0; // TODO: check if necessary. Also check for double \n with preparePacketTX
+    sendAudioSerialPacket(readRadioPacket);
     // TODO: parse packet and do special behavior
 
-    if (readMessage[1] == 'D') {
-      // For Testing
-      dangerLEDState = dangerLEDState == HIGH ? LOW : HIGH;
-    } else {
-      // For Testing
-      thirdLEDState = thirdLEDState == HIGH ? LOW : HIGH;
-    }
+    // Clear packet data
+    memset(readRadioPacket, 0, readRadioPacketSize);
   }
-  audioSerialRXLoop();
-  audioSerialTXLoop();
-  buttonLoop();
-  digitalWrite(dangerLED, dangerLEDState);
-  digitalWrite(sosLED, sosLEDState);
-  digitalWrite(thirdLED, thirdLEDState);
-}
-
-// AudioSerial RX code that runs in the main loop
-void audioSerialRXLoop() {
-  if (audioSerial.available()) {
-    int numBytesRead = audioSerial.readBytesUntil(PACKET_DELIMITER, packetRX, MAX_PACKET_SIZE);
-
+  if (readAudioSerial()) {
     // Do Actions With packetRX
-    broadcastMessage(packetRX, numBytesRead);
+    if (sendRadioPacket(readAudioSerialPacket, readAudioSerialPacketSize)) {
+      Serial.println("sent");
+    }
     // For Testing
-    thirdLEDState = thirdLEDState == HIGH ? LOW : HIGH;
+//    thirdLEDState = thirdLEDState == HIGH ? LOW : HIGH;
+    Serial.println(readAudioSerialPacket);
 
     // Clear packet data
-    memset(packetRX, 0, numBytesRead);
+    memset(readAudioSerialPacket, 0, readAudioSerialPacketSize);
   }
+  audioSerialTXLoop();
+//  buttonLoop();
+//  digitalWrite(dangerLED, dangerLEDState);
+//  digitalWrite(sosLED, sosLEDState);
+//  digitalWrite(thirdLED, thirdLEDState);
 }
 
-// AudioSerial TX code that runs in the main loop
-// Special Protocol: First send a one second start bit, followed by a stop bit, then send regularly.
-// This is so the phone can pick up the start bit without having to poll as often.
-// Functionality in the form of a state machine.
-// TODO: gracefully handle micros() overflow
+/********************
+-- audioSerialTXLoop
+
+audioSerial TX code that should run in the main loop.
+Note that this is not interrupt driven, so it will have difficulty supporting high baud rates.
+The main loop needs to be fast in order for this to work (definitely avoid calling delay).
+
+Special audioSerial TX Protocol:
+First send a one second start bit, followed by a stop bit, then send regularly.
+This is so the phone can pick up the start bit without having to poll as often.
+
+XXX: Behavior has not been checked for when micros() overflows.
+********************/
 void audioSerialTXLoop() {
   long currentTime = micros();
-  long timeSinceStart = currentTime - startSendTime;
+  long timeSinceStart = currentTime - sendAudioSerialPacketStartTime;
 
   // Current state behavior and next state function
-  switch (stateTX) {
+  switch (audioSerialStateTX) {
     // TX is currently available (not busy transmitting)
     case TX_AVAILABLE:
       // Next state function
-      if (packetTX[0] != 0) {
+      if (sendingAudioSerialPacketSize != 0) {
         updateStateTX(TX_LONG_START);
       }
       break;
@@ -174,9 +175,9 @@ void audioSerialTXLoop() {
       }
       break;
 
-    // TX is currently sending packetTX, at bitIndex of c.
+    // TX is currently sending sendAudioSerialPacket, at bitIndex of c.
     case TX_TRANSMIT:
-      char c = packetTX[TX_TRANSMIT_packetIndex];
+      char c = sendingAudioSerialPacket[TX_TRANSMIT_packetIndex];
       // Current state behavior
       int bitIndex = ((timeSinceStart - LONG_START_BIT_MICROS - STOP1_BIT_MICROS) / microsPerBit) % BITS_PER_BYTE;
       if (bitIndex == 0) {
@@ -195,26 +196,30 @@ void audioSerialTXLoop() {
  
       // Next state function
       if (timeSinceStart > LONG_START_BIT_MICROS + STOP1_BIT_MICROS + microsPerBit * BITS_PER_BYTE * (TX_TRANSMIT_packetIndex + 1)) {
-        if (c == '\n' || TX_TRANSMIT_packetIndex >= MAX_PACKET_SIZE) {
+        if (TX_TRANSMIT_packetIndex >= sendingAudioSerialPacketSize) {
           updateStateTX(TX_AVAILABLE);
         } else {
-          updateStateTX(TX_TRANSMIT);
+          TX_TRANSMIT_packetIndex++;
         }
       }
       break;
   }
 }
 
-// state update behavior
-void updateStateTX(TX_state newState) {
+/********************
+-- updateStateTX
+
+State update function for audioSerial TX.
+********************/
+void updateStateTX(AudioSerialTX_State newState) {
   switch (newState) {
     case TX_AVAILABLE:
-      TX_TRANSMIT_packetIndex = -1;
-      packetTX[0] = 0;
+      TX_TRANSMIT_packetIndex = 0;
+      sendingAudioSerialPacketSize = 0;
       analogWrite(audioSerialTX, 0);
       break;
     case TX_LONG_START:
-      startSendTime = micros();
+      sendAudioSerialPacketStartTime = micros();
       // Send one second start bit
       analogWrite(audioSerialTX, 255/2);
       break;
@@ -223,48 +228,82 @@ void updateStateTX(TX_state newState) {
       analogWrite(audioSerialTX, 0);
       break;
     case TX_TRANSMIT:
-      TX_TRANSMIT_packetIndex++;
       break;
   }
 
-  stateTX = newState;
+  audioSerialStateTX = newState;
 }
 
-// Prepare packetTX for sending data.
-// Does nothing if TX is not available. Caller may want to check this itself.
-void preparePacketTX(String str) {
-  if (stateTX != TX_AVAILABLE) {
+/********************
+-- sendAudioSerialPacket
+
+Prepares sendingAudioSerialPacket and audioSerialTX_State for sending. 
+Does nothing if audioSerialTX_State is not TX_AVAILABLE. Caller may want to check this as well.
+********************/
+void sendAudioSerialPacket(String str) {
+  if (audioSerialStateTX != TX_AVAILABLE) {
     return;
   }
   
   // Copy string to packetTX
-  str.toCharArray(packetTX, MAX_PACKET_SIZE); // Also copies null character
+  str.toCharArray(sendingAudioSerialPacket, MAX_PACKET_SIZE); // Also copies null character
 
   // Append packet delimiter char
   int len = str.length();
-  packetTX[len] = PACKET_DELIMITER; // overwrite null with PACKET_DELIMITER
-  packetTX[len+1] = 0; //add null char
+  sendingAudioSerialPacket[len] = PACKET_DELIMITER; // add PACKET_DELIMITER
+  sendingAudioSerialPacketSize = len + 1;
 }
 
-boolean broadcastMessage(char message[], int length) {
+/********************
+-- readAudioSerial
+
+Returns true if we received a packet on the audioSerial connection.
+If we did, modifies readAudioSerialPacket and readAudioSerialPacketSize with the read data.
+readAudioSerialPacket should be well-formed, but that is up to the sender.
+********************/
+boolean readAudioSerial() {
+  boolean received = false;
+  if (audioSerial.available()) {
+    readAudioSerialPacketSize = audioSerial.readBytesUntil(PACKET_DELIMITER, readAudioSerialPacket, MAX_PACKET_SIZE);
+    received = true;
+  }
+  return received;
+}
+
+/********************
+-- readRadio
+
+Returns true if we received a packet on the radio.
+If we did, modifies readRadioPacket and readRadioPacketSize with the read data.
+readRadioPacket should be well-formed, but that is up to the sender.
+********************/
+boolean readRadio() {
+  boolean received = false;
+  if (radio.available()) {
+    readRadioPacketSize = radio.getPayloadSize();
+    received = radio.read(readRadioPacket, readRadioPacketSize);
+  }
+  return received;
+}
+
+/********************
+-- sendRadioPacket
+
+Broadcasts a packet via the radio.
+Packet should already be well-formed.
+Returns true if the packet was successfully delivered (someone received it and ACKed).
+********************/
+boolean sendRadioPacket(char packet[], int length) {
   radio.stopListening();
   radio.openWritingPipe(RADIO_PIPE);
 
-  boolean delivered = radio.write(message, length);
+  boolean delivered = radio.write(packet, length);
   radio.openReadingPipe(0, RADIO_PIPE);
   radio.startListening();
   return delivered;
 }
 
-boolean checkForRadioMessageLoop() {
-  boolean received = false;
-  if (radio.available()) {
-    readMessageSize = radio.getPayloadSize();
-    received = radio.read(readMessage, readMessageSize);
-    readMessage[readMessageSize] = 0; // TODO: check if necessary. Also check for double \n with preparePacketTX
-  }
-  return received;
-}
+
 
 void buttonLoop() {
     // read the state of the switch into a local variable:
@@ -292,7 +331,7 @@ void buttonLoop() {
       if (buttonState == LOW) {
         // TODO: message protocol
         char message[] = "|D|\n";
-        broadcastMessage(message, 7);
+        sendRadioPacket(message, 7);
       }
     }
   }
@@ -314,43 +353,9 @@ void sosSwitchLoop() {
       // TODO: custom message
       // TODO: message protocol
       char message[] = "|S|\n";
-      broadcastMessage(message, 7);
+      sendRadioPacket(message, 7);
       lastSosSendTime = currentTime;
     }
   }
 }
 
-// http://playground.arduino.cc/Code/PwmFrequency
-// Careful with this function. Can mess up timing.
-// The above link includes a link to a forum post: http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1235060559/0#4
-// In the post, it mentions that timer2 for pins 3 and 11 seem to be more independent (fewer timing side effects).
-void setPwmFrequency(int pin, int divisor) {
-  byte mode;
-  if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
-    switch(divisor) {
-      case 1: mode = 0x01; break;
-      case 8: mode = 0x02; break;
-      case 64: mode = 0x03; break;
-      case 256: mode = 0x04; break;
-      case 1024: mode = 0x05; break;
-      default: return;
-    }
-    if(pin == 5 || pin == 6) {
-      TCCR0B = TCCR0B & 0b11111000 | mode;
-    } else {
-      TCCR1B = TCCR1B & 0b11111000 | mode;
-    }
-  } else if(pin == 3 || pin == 11) {
-    switch(divisor) {
-      case 1: mode = 0x01; break;
-      case 8: mode = 0x02; break;
-      case 32: mode = 0x03; break;
-      case 64: mode = 0x04; break;
-      case 128: mode = 0x05; break;
-      case 256: mode = 0x06; break;
-      case 1024: mode = 0x7; break;
-      default: return;
-    }
-    TCCR2B = TCCR2B & 0b11111000 | mode;
-  }
-}

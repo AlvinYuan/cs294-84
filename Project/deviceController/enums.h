@@ -1,4 +1,4 @@
-enum TX_state {
+enum AudioSerialTX_State {
   TX_AVAILABLE,
   TX_LONG_START,
   TX_STOP1,
