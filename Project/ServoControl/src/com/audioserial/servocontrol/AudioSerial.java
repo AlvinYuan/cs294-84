@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 public class AudioSerial {
     // GENERAL
+    public static AudioSerial singleton;
+
     public static final int BITS_PER_BYTE = 10;
     public static final char MESSAGE_DELIMITER = '\n';
     public static final int MAX_MESSAGE_SIZE = 10;

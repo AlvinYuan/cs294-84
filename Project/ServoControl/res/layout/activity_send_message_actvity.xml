@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:text="Earthquake" />
     </RadioGroup>
-        
+
     <RadioGroup
         android:id="@+id/radioGroup2"
         android:layout_width="wrap_content"
@@ -59,7 +59,7 @@
         android:layout_alignBaseline="@+id/radioGroup1"
         android:layout_toRightOf="@+id/radioGroup1"
         android:layout_below="@+id/WhatTxt" >
-        
+
         <RadioButton
         	android:id="@+id/flood"
         	android:layout_width="wrap_content"
@@ -99,9 +99,9 @@
         android:layout_below="@+id/DangerLvlBar"
         android:layout_marginTop="18dp"
         android:ems="10"
+        android:hint="Details"
         android:imeOptions="actionSend"
-        android:inputType="textMultiLine"
-        android:text="Details" />
+        android:inputType="textMultiLine" />
 
     <Button
         android:id="@+id/AlertsLog"

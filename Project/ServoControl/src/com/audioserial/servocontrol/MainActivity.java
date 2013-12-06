@@ -18,10 +18,11 @@ public class MainActivity extends Activity {
     Button dangerButton, sosButton, resetButton, newpage;
     TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView, customMessageTextView;
 
-    AudioSerial audioserial = new AudioSerial();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (AudioSerial.singleton == null) {
+            AudioSerial.singleton = new AudioSerial();
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -45,14 +46,14 @@ public class MainActivity extends Activity {
         dangerButton = (Button) findViewById(R.id.DangerButton);
         dangerButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                audioserial.send(" ABCDEFGHIJKLMNOPQRSTUVWXYZ", true);
+                AudioSerial.singleton.send(" ABCDEFGHIJKLMNOPQRSTUVWXYZ", true);
             }
         });
 
         sosButton = (Button) findViewById(R.id.SOSButton);
         sosButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                audioserial.send(" SOS", true);
+                AudioSerial.singleton.send(" SOS", true);
             }
         });
 
@@ -72,7 +73,7 @@ public class MainActivity extends Activity {
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
         getApplicationContext().registerReceiver(mReceiver, filter);
 
-        audioserial.startRX();
+        AudioSerial.singleton.startRX();
     }
 
     @Override
@@ -80,7 +81,7 @@ public class MainActivity extends Activity {
         super.onStop();
         getApplicationContext().unregisterReceiver(mReceiver);
 
-        audioserial.stopRX();
+        AudioSerial.singleton.stopRX();
     }
 
     void reset() {
@@ -89,9 +90,9 @@ public class MainActivity extends Activity {
         int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
-            audioserial.reset(baudRate, 100, sampleRate);
-            audioserial.sensorReading = sensorReading;
-            audioserial.customMessageTextView = customMessageTextView;
+            AudioSerial.singleton.reset(baudRate, 100, sampleRate);
+            AudioSerial.singleton.sensorReading = sensorReading;
+            AudioSerial.singleton.customMessageTextView = customMessageTextView;
         } else {
             bufferSizeTextView.setText("Got invalid buffer size");
         }
