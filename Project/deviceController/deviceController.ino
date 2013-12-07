@@ -23,17 +23,17 @@ const long ONE_SECOND_IN_MICROS = 1000000;
 const uint64_t RADIO_PIPE = 0xF0F0F0F0E1LL; // Radio pipe address for nordics to communicate.
 
 // Pins. Double check pins for actual device (ex: is TX pin = 6 or 2?)
-const int audioSerialRX = 7;
-const int audioSerialTX = 6;
+const int audioSerialRX = 4;
+const int audioSerialTX = 3;
 const int DO_NOT_USE_PIN = A4;
-const int radioCE = 10;
-const int radioCS = 9;
+const int radioCE = 7;
+const int radioCS = 6;
 const int dangerButton = A5; //A7;
 const int sosSwitch = A3;
 const int dangerNearbyLED = A2;
-const int sosOnLED = A1; //16;
+const int sosOnLED = A1; //13;
 const int sosNearbyLED = A0;
-const int piezoSpeaker = 8;
+const int piezoSpeaker = 5;
 // Additional radio pins specified here (MOSI, MISO, SCK, VCC, GND):
 // http://maniacbug.wordpress.com/2011/03/19/2-4ghz-rf-radio-transceivers-and-library-8/
 // http://www.ebay.com/itm/2-4G-Wireless-nRF24L01-Module-/271021015267?pt=LH_DefaultDomain_0&hash=item3f1a1c80e3
