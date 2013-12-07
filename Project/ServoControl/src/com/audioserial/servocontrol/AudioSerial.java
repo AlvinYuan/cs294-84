@@ -5,7 +5,6 @@
 
 package com.audioserial.servocontrol;
 
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -24,9 +23,6 @@ public class AudioSerial {
     public static final int NO_INDEX_FOUND = -1;
 
     int sampleRate;
-
-    // Debugging
-    Context context;
 
     // TX
     int baudrateTX;
@@ -131,6 +127,7 @@ public class AudioSerial {
     }
 
     private void resetRX() {
+        startRX();
     }
 
     public void startRX() {
@@ -153,7 +150,7 @@ public class AudioSerial {
         int micPolledAmplitude = micAmplitudeSensor.getAmplitude();
 
         if (micPolledAmplitude > MIC_SERIAL_THRESHOLD) {
-            Toast.makeText(context, "Retrieving Packet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.genericContext, "Retrieving Packet", Toast.LENGTH_SHORT).show();
             // background task.
             // Note that while packet is being retrieved, micAmplitudeSensor is disabled.
             // So until the packet retrieval finishes, micAmplitudeSensor.getAmplitude() will return 0.
@@ -293,9 +290,9 @@ public class AudioSerial {
         @Override
         protected void onPostExecute(String result) {
             if (result != null) {
-                Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
+                Packet.retrievedNewPacket(new Packet(result));
             } else {
-                Toast.makeText(context, "BAD PACKET", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.genericContext, "BAD PACKET", Toast.LENGTH_SHORT).show();
             }
         }
     }
