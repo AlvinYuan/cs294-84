@@ -36,24 +36,25 @@ public class MainActivity extends Activity {
         newpage = (Button) findViewById(R.id.newB);
         final Context self = this;
         newpage.setOnClickListener(new OnClickListener() {
-        	public void onClick(View v){
-        		Intent newIntent = new Intent(self, Send_message_actvity.class);
-        		startActivity(newIntent);
-        	}
+            public void onClick(View v){
+                Intent newIntent = new Intent(self, Send_message_actvity.class);
+                startActivity(newIntent);
+            }
         });
         reset();
+        AudioSerial.singleton.startRX();
 
         dangerButton = (Button) findViewById(R.id.DangerButton);
         dangerButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                AudioSerial.singleton.send(" ABCDEFGHIJKLMNOPQRSTUVWXYZ", true);
+                AudioSerial.singleton.send(new Packet(" ABCDEFGHIJKLMNOPQRSTUVWXYZ"), true);
             }
         });
 
         sosButton = (Button) findViewById(R.id.SOSButton);
         sosButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                AudioSerial.singleton.send(" SOS", true);
+                AudioSerial.singleton.send(new Packet(" SOS"), true);
             }
         });
 
@@ -72,15 +73,13 @@ public class MainActivity extends Activity {
         // For determining whether audio jack / microphone is plugged into phone.
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
         getApplicationContext().registerReceiver(mReceiver, filter);
-
-        AudioSerial.singleton.startRX();
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
+        super.onDestroy();
         getApplicationContext().unregisterReceiver(mReceiver);
-
+        // Test this change from onStop to onDestroy and moved startRX to a single call
         AudioSerial.singleton.stopRX();
     }
 
@@ -91,8 +90,7 @@ public class MainActivity extends Activity {
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
             AudioSerial.singleton.reset(baudRate, 100, sampleRate);
-            AudioSerial.singleton.sensorReading = sensorReading;
-            AudioSerial.singleton.customMessageTextView = customMessageTextView;
+            AudioSerial.singleton.context = this;
         } else {
             bufferSizeTextView.setText("Got invalid buffer size");
         }

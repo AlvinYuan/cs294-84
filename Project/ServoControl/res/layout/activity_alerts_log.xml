@@ -8,6 +8,16 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".AlertsLog" >
 
+    <ListView
+        android:id="@+id/List"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/AlertsHeader" >
+
+    </ListView>
+
     <TextView
         android:id="@+id/AlertsHeader"
         android:layout_width="wrap_content"
@@ -16,24 +26,5 @@
         android:layout_centerHorizontal="true"
         android:text="Alerts Log"
         android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <Button
-        android:id="@+id/BackBtn"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="Back" />
-
-    <ListView
-        android:id="@+id/List"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/BackBtn" >
-
-    </ListView>
 
 </RelativeLayout>

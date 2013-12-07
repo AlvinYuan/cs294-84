@@ -2,6 +2,8 @@ package com.audioserial.servocontrol;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -55,15 +57,15 @@ public class Send_message_actvity extends Activity {
         g2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-            	if (checkedId == R.id.chem) {
-            		dangerChecked = "chem" + " ";
-            	}
-            	else if (checkedId == R.id.flood){
-            		dangerChecked = "flood" + " ";
-            	}
-            	else if (checkedId == R.id.other){
-            		dangerChecked = "other" + " ";
-            	}
+                if (checkedId == R.id.chem) {
+                    dangerChecked = "chem" + " ";
+                }
+                else if (checkedId == R.id.flood){
+                    dangerChecked = "flood" + " ";
+                }
+                else if (checkedId == R.id.other){
+                    dangerChecked = "other" + " ";
+                }
             }
         });
 
@@ -87,12 +89,12 @@ public class Send_message_actvity extends Activity {
                 // TODO Auto-generated method stub
             }
         });
-        
+
         Switch sos = (Switch) findViewById(R.id.SOS);
         sos.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v){
-                AudioSerial.singleton.send(" SOS \n", true);
+                AudioSerial.singleton.send(new Packet(" SOS"), true);
             }
         });
 
@@ -101,9 +103,17 @@ public class Send_message_actvity extends Activity {
 
         	public void onClick(View v) {
                 String f = "D "+ dangerChecked + " " + seekbarProgress + " " + details.getText().toString() + " ";
-                f += AudioSerial.MESSAGE_DELIMITER;
                 System.out.println(f);
-                AudioSerial.singleton.send(f, true);
+                AudioSerial.singleton.send(new Packet(f), true);
+            }
+        });
+
+        final Context self = this;
+        seeAlertsLog = (Button) findViewById(R.id.AlertsLog);
+        seeAlertsLog.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                Intent logIntent = new Intent(self, AlertsLog.class);
+                startActivity(logIntent);
             }
         });
     }

@@ -34,6 +34,9 @@ const int dangerNearbyLED = A2;
 const int sosOnLED = A1; //16;
 const int sosNearbyLED = A0;
 const int piezoSpeaker = 8;
+// Additional radio pins specified here (MOSI, MISO, SCK, VCC, GND):
+// http://maniacbug.wordpress.com/2011/03/19/2-4ghz-rf-radio-transceivers-and-library-8/
+// http://www.ebay.com/itm/2-4G-Wireless-nRF24L01-Module-/271021015267?pt=LH_DefaultDomain_0&hash=item3f1a1c80e3
 
 // Packet Buffers
 char readAudioSerialPacket[MAX_PACKET_SIZE];

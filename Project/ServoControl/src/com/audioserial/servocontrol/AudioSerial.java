@@ -1,33 +1,32 @@
 /*
-  AudioSerial.java - Audio serial library for communication from Android smartphone to Arduino
-  Created by Guillaume Dupre, Friday 26, 2013.
-  Released into the public domain.
+ * AudioSerial.java - Audio serial library for communication from Android smartphone to Arduino
+ * Based off publicly released code by Guillaume Dupre.
 */
 
 package com.audioserial.servocontrol;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Handler;
-import android.widget.TextView;
+import android.widget.Toast;
 
 public class AudioSerial {
     // GENERAL
     public static AudioSerial singleton;
 
     public static final int BITS_PER_BYTE = 10;
-    public static final char MESSAGE_DELIMITER = '\n';
     public static final int MAX_MESSAGE_SIZE = 10;
     public static final int NO_INDEX_FOUND = -1;
 
-    int sampleRate = 44100;
+    int sampleRate;
 
     // Debugging
-    TextView customMessageTextView;
-    TextView sensorReading;
+    Context context;
 
     // TX
     int baudrateTX;
@@ -43,17 +42,12 @@ public class AudioSerial {
 
     int baudrateRX;
     SoundMeter micAmplitudeSensor = new SoundMeter();
-    AudioRecord audiorecord = null;
 
     boolean isPollingRX = false;
-    int pollCountRX = 0;
-    int bufferSizeRX;
-    short[] bufferRX;
-
     Handler handlerRX = new Handler();
-    Runnable pollTaskRX = new Runnable() {
+    Runnable pollingTaskRX = new Runnable() {
         public void run() {
-            pollTaskRun();
+            pollRX();
         }
     };
 
@@ -98,20 +92,20 @@ public class AudioSerial {
     }
 
     // BUG: If the first bit sent after the first start bit is LOW, you can get a weird read from the microcontroller.
-    public void send(String str, boolean isInverted) {
+    public void send(Packet p, boolean isInverted) {
         int TXbufferSize = TXbufferSize();
+        String str = p.toString();
 
         for (int i = 0; i < str.length(); i++) {
             send(str.charAt(i), isInverted);
         }
-        send(MESSAGE_DELIMITER, isInverted);
 
         // endTrack: This ensures all important audiotrack data is played.
         audiotrack.write(endTrack, 0, TXbufferSize);
     }
 
     // Sending one byte starting from the least significant bit
-    public void send(int val, boolean isInverted) {
+    private void send(int val, boolean isInverted) {
         int bitlength = bitlengthTX();
 
         // Start bit
@@ -132,83 +126,51 @@ public class AudioSerial {
     }
 
     // RX METHODS
-    public int bitlengthRX() {
+    private int bitlengthRX() {
         return sampleRate / baudrateRX;
     }
 
-    public void resetRX() {
-        pollCountRX = 0;
-
-        bufferSizeRX =
-            (sampleRate * 1) +                                              // one second start bit
-            (sampleRate * 1 / baudrateRX) +                                 // one stop bit
-            (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
-
-        int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        // Ensure buffer size is large enough to instantiate AudioRecord. Since bufferRX is shorts, this will actually be at least twice the minimum size.
-        bufferSizeRX = bufferSizeRX < minBufferSize ? minBufferSize : bufferSizeRX;
-
-        bufferRX = new short[bufferSizeRX];
+    private void resetRX() {
     }
 
     public void startRX() {
         if (!isPollingRX) {
             isPollingRX = true;
             micAmplitudeSensor.start();
-            handlerRX.postDelayed(pollTaskRX, RX_POLL_INTERVAL);
+            handlerRX.postDelayed(pollingTaskRX, RX_POLL_INTERVAL);
         }
     }
 
     public void stopRX() {
         if (isPollingRX) {
             isPollingRX = false;
-            handlerRX.removeCallbacks(pollTaskRX);
+            handlerRX.removeCallbacks(pollingTaskRX);
             micAmplitudeSensor.stop();
         }
     }
 
-    public void pollTaskRun() {
-        pollCountRX++;
-
+    private void pollRX() {
         int micPolledAmplitude = micAmplitudeSensor.getAmplitude();
 
         if (micPolledAmplitude > MIC_SERIAL_THRESHOLD) {
-            receivePacket(); // long operation
-        }
-
-        if (sensorReading != null) {
-            sensorReading.setText("Sensor Reading: " + micPolledAmplitude + "\nUpdate " + pollCountRX);
+            Toast.makeText(context, "Retrieving Packet", Toast.LENGTH_SHORT).show();
+            // background task.
+            // Note that while packet is being retrieved, micAmplitudeSensor is disabled.
+            // So until the packet retrieval finishes, micAmplitudeSensor.getAmplitude() will return 0.
+            new RetrievePacketRXTask().execute();
         }
 
         if (isPollingRX) {
-            handlerRX.postDelayed(pollTaskRX, RX_POLL_INTERVAL);
+            handlerRX.postDelayed(pollingTaskRX, RX_POLL_INTERVAL);
         }
     }
 
-    public void receivePacket() {
-        audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                                      sampleRate, 
-                                      AudioFormat.CHANNEL_IN_MONO, 
-                                      AudioFormat.ENCODING_PCM_16BIT, bufferSizeRX * 2); // multiply bufferSizeRX by 2 since samples are shorts, not bytes
-
-        micAmplitudeSensor.stop(); // also releases resources
-        audiorecord.startRecording();
-        // Record message
-        audiorecord.read(bufferRX, 0, bufferRX.length); // blocks until read finishes
-        audiorecord.stop();
-        audiorecord.release();
-        audiorecord = null;
-        micAmplitudeSensor.start();
-
-        // Parse message
-        parsePacket();
-    }
-
-    public void parsePacket() {
-        String customMessage = "Parsed Packet\n";
+    // Can return null
+    private String parsePacketStringRX(short bufferRX[]) {
+        boolean packetHasDelimiter = false;
         String packetString = "";
 
-        int[] runningAverageMagnitude = computeRunningAverageMagnitude();
+        int[] runningAverageMagnitude = computeRunningAverageMagnitude(bufferRX);
 
         int bufferIndex = 0;
 
@@ -216,11 +178,9 @@ public class AudioSerial {
         bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, false);
         if (bufferIndex == NO_INDEX_FOUND) {
             // No stop bit found. Do not continue parsing
-            System.out.println("No stop bit found");
-            return;
+            return null;
         }
 
-        customMessage += bufferIndex + " first stop bit " + runningAverageMagnitude[bufferIndex] + "\n";
         bufferIndex += bitlengthRX(); // shouldn't be necessary, but it seems to help with the first byte's reading
         // Parse Packet
         for (int packetIndex = 0; packetIndex < MAX_MESSAGE_SIZE; packetIndex++) {
@@ -228,13 +188,7 @@ public class AudioSerial {
             bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, true);
             if (bufferIndex == NO_INDEX_FOUND) {
                 // No start bit found. Do not continue parsing
-                System.out.println("No start bit found " + packetIndex);
-                System.out.println(customMessage);
-                return;
-            }
-
-            if (packetIndex == 0) {
-                customMessage += bufferIndex + " start bit " + runningAverageMagnitude[bufferIndex] + "\n";
+                break;
             }
 
             // Offset to the middle of the bit
@@ -245,32 +199,28 @@ public class AudioSerial {
             // Read byte
             char c = 0;
             for (int bitIndex = 0; bitIndex < 8; bitIndex++) {
+                // Not inverted logic.
                 int bit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD ? 1 : 0;
                 c = (char) (c | (bit << bitIndex));
-                if (packetIndex == 0) {
-                    customMessage += runningAverageMagnitude[bufferIndex] + " ";
-                    customMessageTextView.setText(customMessage);
-                }
                 bufferIndex += bitlengthRX();
-            }
-            if (packetIndex == 0) {
-                customMessage += "\n";
             }
 
             // If found message delimiter character, stop parsing
-            System.out.println(c);
-            if (c == MESSAGE_DELIMITER) {
-                packetString+="\\n";
+            if (c == Packet.PACKET_DELIMITER) {
+                packetHasDelimiter = true;
                 break;
             }
             packetString += c;
         }
-        customMessage += packetString;
 
-        customMessageTextView.setText(customMessage);
+        if (packetHasDelimiter) {
+            return packetString;
+        } else {
+            return null;
+        }
     }
 
-    private int[] computeRunningAverageMagnitude() {
+    private int[] computeRunningAverageMagnitude(short bufferRX[]) {
         // Compute running average of bufferRX
         int bitlengthAveragingFactor = 10; // somewhat arbitrary, should be > 2
         int numSamplesInAverage = bitlengthRX() / bitlengthAveragingFactor;
@@ -302,6 +252,51 @@ public class AudioSerial {
             }
 
             bufferIndex++;
+        }
+    }
+
+    private class RetrievePacketRXTask extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... arg0) {
+            int bufferSizeRX =
+                    (sampleRate * 1) +                                              // one second start bit
+                    (sampleRate * 1 / baudrateRX) +                                 // one stop bit
+                    (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
+
+            int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            // Ensure buffer size is large enough to instantiate AudioRecord. Since bufferRX is shorts, this will actually be at least twice the minimum size.
+            bufferSizeRX = bufferSizeRX < minBufferSize ? minBufferSize : bufferSizeRX;
+
+            short[] bufferRX = new short[bufferSizeRX];
+
+            AudioRecord audiorecord = 
+                    new AudioRecord(MediaRecorder.AudioSource.MIC,
+                                    sampleRate,
+                                    AudioFormat.CHANNEL_IN_MONO,
+                                    AudioFormat.ENCODING_PCM_16BIT,
+                                    bufferSizeRX * 2); // multiply bufferSizeRX by 2 since samples are shorts, not bytes
+
+            micAmplitudeSensor.stop(); // also releases resources
+            audiorecord.startRecording();
+            // Record message
+            audiorecord.read(bufferRX, 0, bufferRX.length); // blocks until read finishes
+            audiorecord.stop();
+            audiorecord.release();
+            audiorecord = null;
+            micAmplitudeSensor.start();
+
+            // Parse message
+            return parsePacketStringRX(bufferRX);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+                Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "BAD PACKET", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }
