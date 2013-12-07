@@ -18,10 +18,9 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 
 public class Send_message_actvity extends Activity {
     TextView details;
-    int seekbarProgress = 0;
-    String dangerChecked = " ";
+    Packet.TypeOfDanger dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
+    Packet.LevelOfDanger dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
     Button sendMessageButton, seeAlertsLog, seeAlertsMap;
-//    Button fire, eq, flood, chem, gun, other;
     RadioGroup g1, g2;
 
     @Override
@@ -30,26 +29,22 @@ public class Send_message_actvity extends Activity {
         setContentView(R.layout.activity_send_message_actvity);
         details = (EditText) findViewById(R.id.Details);
 
-//        fire = (Button) findViewById(R.id.fire);
-//        eq = (Button) findViewById(R.id.eq);
-//        flood = (Button) findViewById(R.id.flood);
-//        chem = (Button) findViewById(R.id.chem);
-//        gun = (Button) findViewById(R.id.gun);
-//        other = (Button) findViewById(R.id.other);
         //what the danger is, fire, flood?
         g1 = (RadioGroup) findViewById(R.id.radioGroup1);
         g1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-            	if (checkedId == R.id.fire) {
-            		dangerChecked = "fire" + " ";
-            	}
-            	else if (checkedId == R.id.eq){
-            		dangerChecked = "eq" + " ";
-            	}
-            	else if (checkedId == R.id.gun){
-            		dangerChecked = "gun" + " ";
-            	}
+                if (checkedId == R.id.fire) {
+                    dangerType = Packet.TypeOfDanger.FIRE;
+                }
+                else if (checkedId == R.id.eq){
+                    // replace this option? earthquake is obvious
+                    dangerType = Packet.TypeOfDanger.UNSTABLE_SURROUNDINGS;
+                }
+                else if (checkedId == R.id.gun){
+                    // replace this option? for the sake of focusing on one type of emergency (disaster)
+                    dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
+                }
             }
         });
 
@@ -58,13 +53,14 @@ public class Send_message_actvity extends Activity {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.chem) {
-                    dangerChecked = "chem" + " ";
+                    dangerType = Packet.TypeOfDanger.CHEMICAL;
                 }
                 else if (checkedId == R.id.flood){
-                    dangerChecked = "flood" + " ";
+                    // replace this option? is it useful? is it edge case when it is useful?
+                    dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
                 }
                 else if (checkedId == R.id.other){
-                    dangerChecked = "other" + " ";
+                    dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
                 }
             }
         });
@@ -74,9 +70,25 @@ public class Send_message_actvity extends Activity {
         sb.setOnSeekBarChangeListener( new OnSeekBarChangeListener(){
 
             @Override
-            public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO Auto-generated method stub
-                seekbarProgress = arg1;
+                switch (progress) {
+                case 0:
+                    dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
+                    break;
+                case 1:
+                    dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
+                    break;
+                case 2:
+                    dangerLevel = Packet.LevelOfDanger.GENERAL_DANGER;
+                    break;
+                case 3:
+                    dangerLevel = Packet.LevelOfDanger.EVACUATE_THE_AREA;
+                    break;
+                default:
+                    dangerLevel = Packet.LevelOfDanger.GENERAL_DANGER;
+                    break;
+                }
             }
 
             @Override
@@ -101,10 +113,8 @@ public class Send_message_actvity extends Activity {
         sendMessageButton = (Button) findViewById(R.id.SendMsg);
         sendMessageButton.setOnClickListener(new OnClickListener() {
 
-        	public void onClick(View v) {
-                String f = "D "+ dangerChecked + " " + seekbarProgress + " " + details.getText().toString() + " ";
-                System.out.println(f);
-                AudioSerial.singleton.send(new Packet(f), true);
+            public void onClick(View v) {
+                AudioSerial.singleton.send(new Packet(Packet.PacketType.DANGER, dangerType, dangerLevel, details.getText().toString()), true);
             }
         });
 

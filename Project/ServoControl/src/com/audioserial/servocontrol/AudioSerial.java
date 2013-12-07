@@ -90,7 +90,7 @@ public class AudioSerial {
     // BUG: If the first bit sent after the first start bit is LOW, you can get a weird read from the microcontroller.
     public void send(Packet p, boolean isInverted) {
         int TXbufferSize = TXbufferSize();
-        String str = p.toString();
+        String str = p.stringRepresentation();
 
         for (int i = 0; i < str.length(); i++) {
             send(str.charAt(i), isInverted);
