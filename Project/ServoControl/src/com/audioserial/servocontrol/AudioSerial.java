@@ -19,7 +19,7 @@ public class AudioSerial {
     public static AudioSerial singleton;
 
     public static final int BITS_PER_BYTE = 10;
-    public static final int MAX_MESSAGE_SIZE = 10;
+    public static final int MAX_MESSAGE_SIZE = 50;
     public static final int NO_INDEX_FOUND = -1;
 
     int sampleRate;

@@ -21,12 +21,16 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         genericContext = this;
         if (AudioSerial.singleton == null) {
             AudioSerial.singleton = new AudioSerial();
         }
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        if (Packet.packetAdapter == null) {
+            Packet.packetAdapter = new PacketAdapter(genericContext, android.R.layout.simple_list_item_1, Packet.packetsReceived);
+        }
 
 
         sensorReading = (TextView) findViewById(R.id.sensorReadingTextView);
