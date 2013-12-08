@@ -7,9 +7,9 @@
  */
 
 #include "enums.h"
-// For audioSerialRX
+// For AudioSerialRX
 #include <SoftwareSerial.h>
-// For Nordic
+// For Nordic Radio
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
@@ -23,22 +23,43 @@ const long ONE_SECOND_IN_MICROS = 1000000;
 const uint64_t RADIO_PIPE = 0xF0F0F0F0E1LL; // Radio pipe address for nordics to communicate.
 const int AUDIO_SERIAL_TX_PWM_HIGH = 255/4;
 
-// Pins. Commented pins pertain to actual device (pro mini) when it differs from breadboard (boarduino).
-const int audioSerialRX = 4;
+// Pins
+// Commented pins pertain to actual device (pro mini) when it differs from breadboard (boarduino).
 const int audioSerialTX = 3;
-const int DO_NOT_USE_PIN = A4;
-const int radioCE = 9;
-const int radioCS = 8;
-const int dangerButton = A5; //A7;
-const int sosSwitch = A3;
-const int dangerNearbyLED = A2;
-const int sosOnLED = A1; //A6;
-const int sosNearbyLED = A0;
+const int audioSerialRX = 4;
 const int piezoSpeaker = 6;
+const int radioCS = 8;
+const int radioCE = 9;
+const int SPI_SS = 10; // not used by device, but the pin should not be used for other activity.
+const int SPI_MOSI = 11;
+const int SPI_MISO = 12;
+const int SPI_SCK = 13;
+const int sosNearbyLED = A0;
+const int severeDangerLED = A1;
+const int dangerNearbyLED = A2;
+const int sosSwitch = A3;
+const int DO_NOT_USE_PIN = A4; // For SoftwareSerialTX, which is not used.
+const int sosOnLED = 5; //A6;
+const int dangerButton = 7; //A7;
 
-// Additional radio pins specified here (MOSI, MISO, SCK, VCC, GND):
-// http://maniacbug.wordpress.com/2011/03/19/2-4ghz-rf-radio-transceivers-and-library-8/
-// http://www.ebay.com/itm/2-4G-Wireless-nRF24L01-Module-/271021015267?pt=LH_DefaultDomain_0&hash=item3f1a1c80e3
+/*
+ * Pins Additional Info
+ * PWM Frequency
+ * It is somewhat important that audioSerialTX is pin 3, due to setPwmFrequency having side effects with timing.
+ * http://playground.arduino.cc/Code/PwmFrequency
+ * http://forum.arduino.cc/index.php/topic,16612.0.html#4
+ *
+ * Nordic Hookup
+ * http://maniacbug.wordpress.com/2011/03/19/2-4ghz-rf-radio-transceivers-and-library-8/
+ * http://www.ebay.com/itm/2-4G-Wireless-nRF24L01-Module-/271021015267?pt=LH_DefaultDomain_0&hash=item3f1a1c80e3
+ * SPI
+ * It is also important that the SPI bus pins (MOSI, MISO, SCK, SS) are devoted for SPI activity.
+ * The SPI pin constants above are not used by this code, but they are used by the device.
+ * http://arduino.cc/en/Main/ArduinoBoardProMini
+ * http://arduino.cc/en/Reference/SPI
+ *
+ * The remaining pins can be freely assigned.
+ */
 
 // Packet Buffers
 char readAudioSerialPacket[MAX_PACKET_SIZE];
@@ -57,29 +78,29 @@ const long microsPerBit = ONE_SECOND_IN_MICROS / baudrateTX;
 const long LONG_START_BIT_MICROS = ONE_SECOND_IN_MICROS;
 const long STOP1_BIT_MICROS = microsPerBit;
 
-// TX State
+// AudioSerial TX State
 AudioSerialTX_State audioSerialStateTX;
 int TX_TRANSMIT_packetIndex;
 long sendAudioSerialPacketStartTime;
 
 // Nordic Radio
-// Set up nRF24L01 radio on SPI bus plus pins radioCE and radioCS
 RF24 radio(radioCE, radioCS);
 
 // Danger Button
 long lastDebounceTime = 0;  // the last time the output pin was toggled
 long debounceDelay = 50;    // the debounce time; increase if the output flickers
-int buttonState;             // the current reading from the input pin
-int lastButtonState = HIGH;   // the previous reading from the input pin
+int buttonState;            // the current reading from the input pin
+int lastButtonState = HIGH; // the previous reading from the input pin
 
 // SOS Switch
 long lastSosSendTime = 0;
 const long sosSendPeriod = 5000;
 
 // LEDs
-int sosOnLEDState = LOW;
 long lastSosReceivedTime = 0;
+long lastSevereDangerReceivedTime = 0;
 long lastDangerReceivedTime = 0;
+int sosOnLEDState = LOW;
 
 // Prepare communication channels and initial state
 void setup(){
@@ -93,18 +114,21 @@ void setup(){
   setPwmFrequency(audioSerialTX, 8);
   updateStateTX(TX_AVAILABLE);
   
-  // Setup and configure rf radio
+  // Nordic radio
   radio.begin();
   radio.setRetries(15,15); // optionally, increase the delay between retries & # of retries
   radio.openReadingPipe(0,RADIO_PIPE); // Open pipes initially for reading
   radio.startListening(); // Start listening
 
-  // LEDs and Sensors
-  pinMode(dangerButton, INPUT_PULLUP);
-  pinMode(sosSwitch, INPUT_PULLUP);
-  pinMode(sosOnLED, OUTPUT);
-  pinMode(dangerNearbyLED, OUTPUT);
+  // LEDs
   pinMode(sosNearbyLED, OUTPUT);
+  pinMode(severeDangerLED, OUTPUT);
+  pinMode(dangerNearbyLED, OUTPUT);
+  pinMode(sosOnLED, OUTPUT);
+
+  // Sensors
+  pinMode(sosSwitch, INPUT_PULLUP);
+  pinMode(dangerButton, INPUT_PULLUP);
 }
 
 void loop(){
@@ -137,17 +161,20 @@ void loop(){
 
   // TESTING ONLY
   long currentTime = millis();
+  int severeDangerLEDState = currentTime - lastDangerReceivedTime > 5000 ? LOW : HIGH;
   int dangerNearbyLEDState = currentTime - lastDangerReceivedTime > 5000 ? LOW : HIGH;
   int sosNearbyLEDState = currentTime - lastSosReceivedTime > 5000 ? LOW : HIGH;
   if (currentTime - lastDangerReceivedTime > 10000) {
+    lastSevereDangerReceivedTime = currentTime;
     lastDangerReceivedTime = currentTime;
     lastSosReceivedTime = currentTime;
   }
   
   // Update LEDs
-  digitalWrite(sosOnLED, sosOnLEDState);
-  digitalWrite(dangerNearbyLED, dangerNearbyLEDState);
   digitalWrite(sosNearbyLED, sosNearbyLEDState);
+  digitalWrite(severeDangerLED, severeDangerLEDState);
+  digitalWrite(dangerNearbyLED, dangerNearbyLEDState);
+  digitalWrite(sosOnLED, sosOnLEDState);
 }
 
 /********************
