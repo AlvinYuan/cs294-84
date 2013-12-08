@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
                 reset();
             }
         });
-}
+    }
 
     @Override
     public void onResume() {

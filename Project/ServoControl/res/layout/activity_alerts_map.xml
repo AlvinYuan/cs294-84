@@ -8,23 +8,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".AlertsMap" >
 
-    <Button
-        android:id="@+id/SendMsg"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/AlertsHeader"
-        android:layout_alignParentLeft="true"
-        android:text="Back" />
-
-    <TextView
-        android:id="@+id/AlertsHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Alerts Map"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="com.google.android.gms.maps.MapFragment" />
 
 </RelativeLayout>

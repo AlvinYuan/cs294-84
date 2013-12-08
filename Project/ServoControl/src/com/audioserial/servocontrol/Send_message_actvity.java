@@ -126,6 +126,14 @@ public class Send_message_actvity extends Activity {
                 startActivity(logIntent);
             }
         });
+
+        seeAlertsMap = (Button) findViewById(R.id.AlertsMap);
+        seeAlertsMap.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                Intent mapIntent = new Intent(self, AlertsMap.class);
+                startActivity(mapIntent);
+            }
+        });
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
