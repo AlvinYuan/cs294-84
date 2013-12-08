@@ -58,7 +58,7 @@ public class Packet {
     LevelOfDanger dangerLevel = LevelOfDanger.NOT_SPECIFIED;
     String timeStamp = new SimpleDateFormat("h:mm").format(Calendar.getInstance().getTime());
 
-    String customMessage;
+    String customMessage = "";
 
     public static void retrievedNewPacket(Packet p) {
         Toast.makeText(MainActivity.genericContext, p.readableFormat(), Toast.LENGTH_SHORT).show();
@@ -92,19 +92,6 @@ public class Packet {
         case DANGER:
             if (fields.length > 2 && fields[2].length() > 0) {
                 switch (fields[2].charAt(0)) {
-                case 'F':
-                    dangerType = TypeOfDanger.FIRE;
-                    break;
-                case 'C':
-                    dangerType = TypeOfDanger.CHEMICAL;
-                    break;
-                case 'U':
-                    dangerType = TypeOfDanger.UNSTABLE_SURROUNDINGS;
-                    break;
-                }
-            }
-            if (fields.length > 3 && fields[3].length() > 0) {
-                switch (fields[3].charAt(0)) {
                 case '1':
                     dangerLevel = LevelOfDanger.PROCEED_WITH_CAUTION;
                     break;
@@ -113,6 +100,19 @@ public class Packet {
                     break;
                 case '3':
                     dangerLevel = LevelOfDanger.EVACUATE_THE_AREA;
+                    break;
+                }
+            }
+            if (fields.length > 3 && fields[3].length() > 0) {
+                switch (fields[3].charAt(0)) {
+                case 'F':
+                    dangerType = TypeOfDanger.FIRE;
+                    break;
+                case 'C':
+                    dangerType = TypeOfDanger.CHEMICAL;
+                    break;
+                case 'U':
+                    dangerType = TypeOfDanger.UNSTABLE_SURROUNDINGS;
                     break;
                 }
             }
@@ -131,8 +131,8 @@ public class Packet {
         String str = "";
         str += FIELD_DELIMITER + packetType.encoding;
         if (packetType == PacketType.DANGER) {
-            str += FIELD_DELIMITER + dangerType.encoding;
             str += FIELD_DELIMITER + dangerLevel.encoding;
+            str += FIELD_DELIMITER + dangerType.encoding;
         }
         str += FIELD_DELIMITER + customMessage;
         str += PACKET_DELIMITER;

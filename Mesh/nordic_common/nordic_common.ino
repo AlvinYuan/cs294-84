@@ -124,7 +124,7 @@ void loop(void)
         Serial.println("Sending Danger Message");
         radio.stopListening();
         radio.openWritingPipe(pipe);
-        char message[15] = "|D|?|2|custom\n";
+        char message[15] = "|D|2|?|custom\n";
         bool delivered = radio.write(message, 14);
         radio.openReadingPipe(0, pipe);
         radio.startListening();
@@ -141,6 +141,23 @@ void loop(void)
   // it'll be the lastButtonState:
   lastButtonState = reading;
 
+  if (Serial.available()) {
+    // Send Custom Message
+    Serial.println("Sending Custom Message");
+    radio.stopListening();
+    radio.openWritingPipe(pipe);
+    char message[50];
+    int bytesRead = Serial.readBytesUntil(0, message, 50);
+    message[bytesRead] = '\n';
+    bool delivered = radio.write(message, bytesRead + 1);
+    radio.openReadingPipe(0, pipe);
+    radio.startListening();
+    if (delivered) {
+      Serial.println("Custom Message Sent");
+    } else {
+      Serial.println("Custom Message Dropped");
+    }
+  }
   // Radio Reading
   
   if (radio.available()) {
