@@ -17,7 +17,9 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
     public static Context genericContext;
     Button dangerButton, sosButton, resetButton, newpage;
-    TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView, customMessageTextView;
+    TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView;
+    // Debugging
+    public static TextView debuggingMessageTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +40,7 @@ public class MainActivity extends Activity {
         baudRateEditText = (TextView) findViewById(R.id.BaudRateEditText);
         sampleRateEditText = (TextView) findViewById(R.id.SampleRateEditText);
         bufferSizeTextView = (TextView) findViewById(R.id.BufferSizeTextView);
-        customMessageTextView = (TextView) findViewById(R.id.CustomMessageTextView);
+        debuggingMessageTextView = (TextView) findViewById(R.id.CustomMessageTextView);
         newpage = (Button) findViewById(R.id.newB);
         newpage.setOnClickListener(new OnClickListener() {
             public void onClick(View v){
@@ -93,7 +95,7 @@ public class MainActivity extends Activity {
         int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (bufferSize > 0) {
             bufferSizeTextView.setText("Min Buffer Size = " + bufferSize);
-            AudioSerial.singleton.reset(baudRate, 100, sampleRate);
+            AudioSerial.singleton.reset(300, baudRate, sampleRate);
         } else {
             bufferSizeTextView.setText("Got invalid buffer size");
         }

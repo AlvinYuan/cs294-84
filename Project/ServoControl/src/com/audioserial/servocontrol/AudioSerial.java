@@ -24,6 +24,9 @@ public class AudioSerial {
 
     int sampleRate;
 
+    // DEBUGGING
+    String debuggingMessage = "";
+
     // TX
     int baudrateTX;
     AudioTrack audiotrack;
@@ -166,17 +169,24 @@ public class AudioSerial {
     private String parsePacketStringRX(short bufferRX[]) {
         boolean packetHasDelimiter = false;
         String packetString = "";
+        debuggingMessage = "";
 
         int[] runningAverageMagnitude = computeRunningAverageMagnitude(bufferRX);
 
         int bufferIndex = 0;
 
+        debuggingMessage += runningAverageMagnitude[0] + " ";
+        debuggingMessage += runningAverageMagnitude[1] + " ";
+        debuggingMessage += runningAverageMagnitude[2] + " ";
+        debuggingMessage += runningAverageMagnitude[10] + "\n";
         // Find the first stop bit
         bufferIndex = nextBitIndex(runningAverageMagnitude, bufferIndex, false);
         if (bufferIndex == NO_INDEX_FOUND) {
             // No stop bit found. Do not continue parsing
+            debuggingMessage += "No stop bit found\n";
             return null;
         }
+        debuggingMessage += bufferIndex + " mag = " + runningAverageMagnitude[bufferIndex] + "STOP\n";
 
         bufferIndex += bitlengthRX(); // shouldn't be necessary, but it seems to help with the first byte's reading
         // Parse Packet
@@ -188,6 +198,8 @@ public class AudioSerial {
                 break;
             }
 
+            debuggingMessage += bufferIndex + " mag = " + runningAverageMagnitude[bufferIndex] + "START\n";
+
             // Offset to the middle of the bit
             bufferIndex += bitlengthRX() / 2;
             // Offset to the first bit
@@ -197,10 +209,12 @@ public class AudioSerial {
             char c = 0;
             for (int bitIndex = 0; bitIndex < 8; bitIndex++) {
                 // Not inverted logic.
+                debuggingMessage += runningAverageMagnitude[bufferIndex] + " ";
                 int bit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD ? 1 : 0;
                 c = (char) (c | (bit << bitIndex));
                 bufferIndex += bitlengthRX();
             }
+            debuggingMessage += "\n" + c + "\n";
 
             // If found message delimiter character, stop parsing
             if (c == Packet.PACKET_DELIMITER) {
@@ -289,6 +303,10 @@ public class AudioSerial {
 
         @Override
         protected void onPostExecute(String result) {
+            if (MainActivity.debuggingMessageTextView != null) {
+                MainActivity.debuggingMessageTextView.setText(debuggingMessage);
+            }
+
             if (result != null) {
                 Packet.retrievedNewPacket(new Packet(result));
             } else {

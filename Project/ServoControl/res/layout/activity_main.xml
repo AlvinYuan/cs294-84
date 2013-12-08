@@ -21,7 +21,7 @@
         android:layout_below="@+id/sensorReadingTextView"
         android:ems="10"
         android:inputType="number"
-        android:text="300" >
+        android:text="200" >
 
         <requestFocus />
     </EditText>
