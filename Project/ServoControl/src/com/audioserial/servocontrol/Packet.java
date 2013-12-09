@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import android.location.Location;
 import android.widget.Toast;
 
 public class Packet {
@@ -53,17 +54,23 @@ public class Packet {
             this.readable = readable;
         }
     }
+
+    // Fields
     PacketType packetType = PacketType.NOT_SPECIFIED;
     TypeOfDanger dangerType = TypeOfDanger.NOT_SPECIFIED;
     LevelOfDanger dangerLevel = LevelOfDanger.NOT_SPECIFIED;
-    String timeStamp = new SimpleDateFormat("h:mm").format(Calendar.getInstance().getTime());
-
     String customMessage = "";
+    String timeStamp = new SimpleDateFormat("h:mm").format(Calendar.getInstance().getTime());
+    Location loc = null;
+    boolean locFromPacket; // if false, loc refers to location of user when they received the.packet.
 
     public static void retrievedNewPacket(Packet p) {
         Toast.makeText(MainActivity.genericContext, p.readableFormat(), Toast.LENGTH_SHORT).show();
         packetsReceived.add(0, p);
         packetAdapter.notifyDataSetChanged();
+        if (AlertsMap.liveActivity != null) {
+            AlertsMap.liveActivity.addPacketToMap(p);
+        }
     }
 
     public Packet(PacketType packetType, TypeOfDanger dangerType, LevelOfDanger dangerLevel, String customMessage) {
@@ -125,6 +132,11 @@ public class Packet {
         default:
             customMessage = packetString;
         }
+
+        // TODO: encode loc in packets
+        // For now, always set loc to user's current location
+        loc = MainActivity.currentLocation;
+        locFromPacket = false;
     }
 
     public String stringRepresentation() {
@@ -152,6 +164,11 @@ public class Packet {
         }
         str += customMessage;
         return str;
+    }
+
+    public static void generateTestPackets() {
+        packetsReceived.add(0, new Packet("|D|2|F|soda hall is on fire"));
+        packetAdapter.notifyDataSetChanged();
     }
 
 }

@@ -1,5 +1,9 @@
 package com.audioserial.servocontrol;
 
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Bundle;
@@ -14,10 +18,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements LocationListener {
     public static Context genericContext;
     Button dangerButton, sosButton, resetButton, newpage;
     TextView sensorReading, micTextView, baudRateEditText, sampleRateEditText, bufferSizeTextView;
+    public static Location currentLocation;
     // Debugging
     public static TextView debuggingMessageTextView;
 
@@ -71,6 +76,14 @@ public class MainActivity extends Activity {
                 reset();
             }
         });
+
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        String provider = manager.getBestProvider(new Criteria(), true);
+        manager.requestLocationUpdates(provider, 0, 0, this);
+        onLocationChanged(manager.getLastKnownLocation(provider));
+
+        // Debugging
+        Packet.generateTestPackets();
     }
 
     @Override
@@ -119,5 +132,29 @@ public class MainActivity extends Activity {
             }
         }
     };
+
+    @Override
+    public void onLocationChanged(Location location) {
+        // TODO Auto-generated method stub
+        currentLocation = location;
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }
