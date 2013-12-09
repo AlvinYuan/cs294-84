@@ -45,7 +45,7 @@
         android:text="Baudrate" />
 
     <TextView
-        android:id="@+id/TextView01"
+        android:id="@+id/optionalTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/SampleRateEditText"
