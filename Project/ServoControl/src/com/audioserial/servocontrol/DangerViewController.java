@@ -1,22 +1,28 @@
 package com.audioserial.servocontrol;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Point;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
-public class DangerViewController {
+public class DangerViewController implements OnSeekBarChangeListener {
     TextView details;
     Packet.TypeOfDanger dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
     Packet.LevelOfDanger dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
     Button sendMessageButton, seeAlertsLog, seeAlertsMap;
     RadioGroup g1, g2;
+    TextView lowDangerTextView, mediumDangerTextView, highDangerTextView;
 
+    @SuppressLint("NewApi")
     public DangerViewController(View dangerView, Activity activity) {
         details = (TextView) dangerView.findViewById(R.id.Details);
 
@@ -50,40 +56,27 @@ public class DangerViewController {
 
         //what the lvl of danger is?
         SeekBar sb = (SeekBar) dangerView.findViewById(R.id.DangerLvlBar);
-        sb.setOnSeekBarChangeListener( new OnSeekBarChangeListener(){
+        /* Fix Layout to look nice with text */
+        int padding = sb.getPaddingLeft();
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB_MR2) {
+            size.set(display.getWidth(), display.getHeight());
+        } else {
+            display.getSize(size);
+        }
+        int width = size.x;
+        int margin = width * 1/6 - padding;
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) sb.getLayoutParams();
+        params.setMargins(margin, 0, margin, 0);
+        sb.setLayoutParams(params);
 
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // TODO Auto-generated method stub
-                switch (progress) {
-                case 0:
-                    dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
-                    break;
-                case 1:
-                    dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
-                    break;
-                case 2:
-                    dangerLevel = Packet.LevelOfDanger.GENERAL_DANGER;
-                    break;
-                case 3:
-                    dangerLevel = Packet.LevelOfDanger.EVACUATE_THE_AREA;
-                    break;
-                default:
-                    dangerLevel = Packet.LevelOfDanger.GENERAL_DANGER;
-                    break;
-                }
-            }
+        lowDangerTextView = (TextView) dangerView.findViewById(R.id.textView1);
+        mediumDangerTextView = (TextView) dangerView.findViewById(R.id.textView2);
+        highDangerTextView = (TextView) dangerView.findViewById(R.id.textView3);
 
-            @Override
-            public void onStartTrackingTouch(SeekBar arg0) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar arg0) {
-                // TODO Auto-generated method stub
-            }
-        });
+        sb.setOnSeekBarChangeListener(this);
+        sb.setProgress(1);
 
         sendMessageButton = (Button) dangerView.findViewById(R.id.SendMsg);
         sendMessageButton.setOnClickListener(new OnClickListener() {
@@ -93,6 +86,40 @@ public class DangerViewController {
             }
         });
 
+    }
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        // TODO Auto-generated method stub
+        switch (progress) {
+        case 0:
+            dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
+            lowDangerTextView.setTextColor(0xffffcc22);
+            mediumDangerTextView.setTextColor(0xff000000);
+            highDangerTextView.setTextColor(0xff000000);
+            break;
+        case 2:
+            dangerLevel = Packet.LevelOfDanger.EVACUATE_THE_AREA;
+            lowDangerTextView.setTextColor(0xff000000);
+            mediumDangerTextView.setTextColor(0xff000000);
+            highDangerTextView.setTextColor(0xffcc0000);
+            break;
+        default:
+            dangerLevel = Packet.LevelOfDanger.GENERAL_DANGER;
+            lowDangerTextView.setTextColor(0xff000000);
+            mediumDangerTextView.setTextColor(0xffff8800);
+            highDangerTextView.setTextColor(0xff000000);
+            break;
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar arg0) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar arg0) {
+        // TODO Auto-generated method stub
     }
 
 }
