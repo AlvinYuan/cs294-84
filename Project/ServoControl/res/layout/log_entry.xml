@@ -3,6 +3,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:paddingTop="3dip"
+    android:paddingBottom="3dip"
     android:paddingLeft="5dip"
     android:paddingRight="8dip" >
 
@@ -13,6 +15,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="5dip"
+        android:fontFamily="sans-serif"
+        android:textStyle="bold"
         android:text="Packet Type" />
 
     <TextView
@@ -21,6 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:fontFamily="sans-serif-light"
         android:text="Timestamp" />
 
     <TextView
@@ -29,6 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/TypeTextView"
         android:layout_below="@+id/TypeTextView"
+        android:fontFamily="sans-serif-light"
         android:text="Message" />
 
     <TextView
@@ -38,6 +44,7 @@
         android:layout_alignBaseline="@+id/TypeTextView"
         android:layout_alignBottom="@+id/TypeTextView"
         android:layout_toRightOf="@+id/TypeTextView"
+        android:fontFamily="sans-serif-light"
         android:text="Danger Type" />
 
 </RelativeLayout>

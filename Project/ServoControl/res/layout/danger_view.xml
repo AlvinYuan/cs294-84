@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:fontFamily="sans-serif-light"
     tools:context=".DangerViewController" >
@@ -16,14 +14,17 @@
         android:layout_below="@+id/AlertsHeader"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:background="@android:color/darker_gray"/>
 
     <TextView
-        android:id="@+id/WhatTxt"
+        android:id="@+id/TypeOfDangerTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_below="@+id/line"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:text="Type of Danger"
         android:fontFamily="sans-serif-light"
         android:textAppearance="?android:attr/textAppearanceSmall" />
@@ -32,7 +33,7 @@
         android:id="@+id/radioGroup1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/WhatTxt"
+        android:layout_below="@+id/TypeOfDangerTextView"
         android:layout_marginTop="5dp"
         android:layout_alignLeft="@+id/DangerLvlBar"
         android:fontFamily="sans-serif-light"
@@ -42,13 +43,14 @@
             android:id="@+id/fire"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:checked="false"
+            android:fontFamily="sans-serif-light"
             android:text="Fire" />
 
         <RadioButton
             android:id="@+id/unstable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
             android:text="Structurally\nUnsound" />
     </RadioGroup>
 
@@ -58,54 +60,35 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/radioGroup1"
         android:layout_alignBottom="@+id/radioGroup1"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_toRightOf="@+id/radioGroup1" >
 
         <RadioButton
             android:id="@+id/chem"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
             android:text="Chemical" />
 
         <RadioButton
             android:id="@+id/other"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:fontFamily="sans-serif-light"
             android:text="Other" />
 
     </RadioGroup>
-
-    <SeekBar
-        android:id="@+id/DangerLvlBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/Details"
-        android:layout_below="@+id/DangerTxt"
-        android:layout_marginBottom="5dp"
-        android:max="3"
-        android:layout_marginTop="15dp" />
-
-    <EditText
-        android:id="@+id/Details"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/DangerTxt"
-        android:layout_below="@+id/optionalTxt"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="5dp"
-        android:ems="10"
-        android:hint="Details"
-        android:imeOptions="actionSend"
-        android:inputType="textMultiLine" />
 
     <TextView
         android:id="@+id/DangerTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/WhatTxt"
+        android:layout_alignLeft="@+id/TypeOfDangerTextView"
         android:layout_below="@+id/radioGroup1"
         android:layout_marginTop="15dp"
+        android:layout_marginBottom="5dp"
         android:text="Danger Level"
-        android:fontFamily="sans-serif-light"        
+        android:fontFamily="sans-serif-light"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
@@ -117,20 +100,8 @@
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
         android:fontFamily="sans-serif-light"
-        android:text="Alert Message"
+        android:text="Danger Nearby Message"
         android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <TextView
-        android:id="@+id/optionalTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/Details"
-        android:layout_below="@+id/DangerLvlBar"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:fontFamily="sans-serif-light"
-        android:text="Optional"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <Button
         android:id="@+id/SendMsg"
@@ -138,9 +109,133 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:background="#0044cc"
         android:radius="10dp"
-        android:text="Send Message"
-        android:textColor="#000000" />
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:fontFamily="sans-serif-light"
+        android:text="Send Message" />
+
+    <LinearLayout
+        android:id="@+id/ProgressTickLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/DangerLvlBar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/DangerLvlBar"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal" >
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/tick1"
+            android:background="#ffcccccc"
+            android:layout_width="1dp"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/view2"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/tick2"
+            android:background="#ffcccccc"
+            android:layout_width="1dp"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/view3"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/tick3"
+            android:background="#ffcccccc"
+            android:layout_width="1dp"
+            android:layout_height="match_parent" />
+        <View
+            android:id="@+id/view4"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/DangerLvlBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/DangerTxt"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="15dp"
+        android:max="2" />
+
+    <TextView
+        android:id="@+id/DetailsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/DangerTxt"
+        android:layout_below="@+id/ProgressDescriptionLayout"
+        android:fontFamily="sans-serif-light"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:text="Details"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/Details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/DetailsTextView"
+        android:layout_alignRight="@+id/SendMsg"
+        android:layout_below="@+id/DetailsTextView"
+        android:fontFamily="sans-serif-light"
+        android:hint="Location, situation, etc." >
+
+        <requestFocus />
+    </EditText>
+
+    <LinearLayout
+        android:id="@+id/ProgressDescriptionLayout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ProgressTickLayout" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:fontFamily="sans-serif-light"
+            android:text="Proceed with\nCaution"
+            android:textSize="12sp" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:fontFamily="sans-serif-light"
+            android:text="Avoid if\nPossible"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-light"
+            android:gravity="center"
+            android:text="Evacuate\nthe Area"
+            android:textSize="12sp" />
+
+    </LinearLayout>
 
 </RelativeLayout>
