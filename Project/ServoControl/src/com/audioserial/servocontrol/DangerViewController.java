@@ -78,7 +78,7 @@ public class DangerViewController implements OnSeekBarChangeListener {
         sb.setOnSeekBarChangeListener(this);
         sb.setProgress(1);
 
-        sendMessageButton = (Button) dangerView.findViewById(R.id.SendMsg);
+        sendMessageButton = (Button) dangerView.findViewById(R.id.SendMsgButton);
         sendMessageButton.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v) {

@@ -103,17 +103,6 @@
         android:text="Danger Nearby Message"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <Button
-        android:id="@+id/SendMsg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:radius="10dp"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:fontFamily="sans-serif-light"
-        android:text="Send Message" />
-
     <LinearLayout
         android:id="@+id/ProgressTickLayout"
         android:layout_width="wrap_content"
@@ -192,7 +181,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/DetailsTextView"
-        android:layout_alignRight="@+id/SendMsg"
+        android:layout_alignRight="@+id/SendMsgButton"
         android:layout_below="@+id/DetailsTextView"
         android:fontFamily="sans-serif-light"
         android:hint="Location, situation, etc." >
@@ -237,5 +226,16 @@
             android:textSize="12sp" />
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/SendMsgButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/line"
+        android:layout_below="@+id/Details"
+        android:layout_marginTop="5dp"
+        android:fontFamily="sans-serif-light"
+        android:radius="10dp"
+        android:text="Send Message" />
 
 </RelativeLayout>
