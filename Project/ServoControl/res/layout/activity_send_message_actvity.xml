@@ -6,22 +6,26 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:fontFamily="sans-serif-light"
     tools:context=".Send_message_actvity" >
-
-    <TextView
-        android:id="@+id/AlertsHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Alert Message"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
+    
+	<View
+	    android:id="@+id/line"
+    	android:layout_width="fill_parent"
+    	android:layout_height="1dp"
+    	android:layout_below="@+id/AlertsHeader"
+    	android:layout_marginTop="5dp"
+    	android:layout_marginBottom="5dp"
+    	android:background="@android:color/darker_gray"/>
+	
     <TextView
         android:id="@+id/WhatTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/AlertsHeader"
+        android:layout_below="@+id/line"
         android:text="What"
+        android:fontFamily="sans-serif-light"        
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <RadioGroup
@@ -29,7 +33,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" 
         android:layout_below="@+id/WhatTxt"  
-        android:layout_alignLeft="@+id/DangerLvlBar"   
+        android:layout_marginTop="5dp"
+        android:layout_alignLeft="@+id/DangerLvlBar"
+        android:fontFamily="sans-serif-light"
         >
 
         <RadioButton
@@ -40,16 +46,10 @@
             android:text="Fire" />
 
         <RadioButton
-            android:id="@+id/gun"
+            android:id="@+id/unstable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Shooter/Bomb" />
-
-        <RadioButton
-            android:id="@+id/eq"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Earthquake" />
+            android:text="Unstable Area" />
     </RadioGroup>
 
     <RadioGroup
@@ -59,14 +59,6 @@
         android:layout_alignBaseline="@+id/radioGroup1"
         android:layout_toRightOf="@+id/radioGroup1"
         android:layout_below="@+id/WhatTxt" >
-
-        <RadioButton
-        	android:id="@+id/flood"
-        	android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:layout_above="@+id/chem"
-        	android:layout_alignLeft="@+id/chem"
-        	android:text="Flood" />
 
     	<RadioButton
         	android:id="@+id/chem"
@@ -88,16 +80,18 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/Details"
         android:layout_below="@+id/DangerTxt"
+        android:layout_marginBottom="5dp"
         android:max="3"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="15dp" />
 
     <EditText
         android:id="@+id/Details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/DangerTxt"
-        android:layout_below="@+id/DangerLvlBar"
-        android:layout_marginTop="18dp"
+        android:layout_below="@+id/optionalTxt"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
         android:ems="10"
         android:hint="Details"
         android:imeOptions="actionSend"
@@ -113,24 +107,15 @@
         android:layout_toLeftOf="@+id/SendMsg"
         android:text="Alerts Log" />
 
-    <Button
-        android:id="@+id/SOS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/AlertsHeader"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/AlertsHeader"
-        android:onClick="onToggleClicked"
-        android:text="SOS?" />
-
     <TextView
         android:id="@+id/DangerTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/WhatTxt"
         android:layout_below="@+id/radioGroup1"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="15dp"
         android:text="Danger Level"
+        android:fontFamily="sans-serif-light"        
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <Button
@@ -147,8 +132,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/Details"
-        android:layout_marginTop="31dp"
+        android:textColor="#0044cc"
+        android:layout_marginTop="15dp"
         android:layout_toRightOf="@+id/radioGroup1"
         android:text="Send Message" />
+
+    <TextView
+        android:id="@+id/AlertsHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:fontFamily="sans-serif-light"
+        android:text="Alert Message"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/optionalTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/Details"
+        android:layout_below="@+id/DangerLvlBar"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:fontFamily="sans-serif-light"
+        android:text="Optional"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

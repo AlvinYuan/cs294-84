@@ -40,7 +40,7 @@ public class Send_message_actvity extends Activity {
                     // replace this option? earthquake is obvious
                     dangerType = Packet.TypeOfDanger.UNSTABLE_SURROUNDINGS;
                 }
-                else if (checkedId == R.id.gun){
+                else if (checkedId == R.id.unstable){
                     // replace this option? for the sake of focusing on one type of emergency (disaster)
                     dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
                 }

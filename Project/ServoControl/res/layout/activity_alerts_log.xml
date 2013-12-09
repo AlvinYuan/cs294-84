@@ -24,6 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:fontFamily="sans-serif-light"
         android:text="Alerts Log"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
