@@ -76,8 +76,8 @@ public class AlertsMap extends FragmentActivity
             Marker marker = map.addMarker(
                     new MarkerOptions().
                     position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).
-                    title("").
-                    snippet(p.readableFormat()).
+                    title(p.readableFormat()).
+//                    snippet().
                     icon(BitmapDescriptorFactory.defaultMarker(hue)));
         }
     }
