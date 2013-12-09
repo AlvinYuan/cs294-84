@@ -168,6 +168,10 @@ public class Packet {
 
     public static void generateTestPackets() {
         packetsReceived.add(0, new Packet("|D|2|F|soda hall is on fire"));
+        packetsReceived.add(0, new Packet("|D|1|?|"));
+        packetsReceived.add(0, new Packet("|D|3|C|get out"));
+        packetsReceived.add(0, new Packet("|S|get out"));
+        packetsReceived.add(0, new Packet("blah"));
         packetAdapter.notifyDataSetChanged();
     }
 

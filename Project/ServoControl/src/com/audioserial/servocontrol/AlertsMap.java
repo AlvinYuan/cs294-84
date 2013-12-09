@@ -5,6 +5,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -37,18 +38,48 @@ public class AlertsMap extends FragmentActivity
             // Construct marker
             addPacketToMap(p);
         }
-        /* Not perfectly centered for some reason, but very close. Good enough I guess. */
-        LatLng location = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
-        // Zoom in, animating the camera.
-        map.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
-
+        if (MainActivity.currentLocation != null) {
+            // Not perfectly centered for some reason, but very close. Good enough I guess.
+            LatLng location = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
+            // Zoom in, animating the camera.
+            map.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+        }
     }
 
     public void addPacketToMap(Packet p) {
         if (p.loc != null) {
+            float hue;
+            switch (p.packetType) {
+            case SOS:
+                hue = BitmapDescriptorFactory.HUE_AZURE;
+                break;
+            case DANGER:
+                switch (p.dangerLevel) {
+                case PROCEED_WITH_CAUTION:
+                    hue = BitmapDescriptorFactory.HUE_YELLOW;
+                    break;
+                case GENERAL_DANGER:
+                    hue = BitmapDescriptorFactory.HUE_ORANGE;
+                    break;
+                case EVACUATE_THE_AREA:
+                    hue = BitmapDescriptorFactory.HUE_RED;
+                    break;
+                default:
+                    hue = BitmapDescriptorFactory.HUE_ORANGE;
+                    break;
+                }
+                break;
+            default:
+                hue = BitmapDescriptorFactory.HUE_ROSE;
+                break;
+            }
             Marker marker = map.addMarker(
-                    new MarkerOptions().position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).title(p.packetType.readable).snippet(p.readableFormat()));
+                    new MarkerOptions().
+                    position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).
+                    title("").
+                    snippet(p.readableFormat()).
+                    icon(BitmapDescriptorFactory.defaultMarker(hue)));
         }
     }
     @Override

@@ -79,9 +79,10 @@ public class MainActivity extends Activity implements LocationListener {
 
         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         String provider = manager.getBestProvider(new Criteria(), true);
-        manager.requestLocationUpdates(provider, 0, 0, this);
-        onLocationChanged(manager.getLastKnownLocation(provider));
-
+        if (provider != null) {
+            manager.requestLocationUpdates(provider, 0, 0, this);
+            onLocationChanged(manager.getLastKnownLocation(provider));
+        }
         // Debugging
         Packet.generateTestPackets();
     }
