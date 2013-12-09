@@ -113,7 +113,7 @@
         android:layout_toLeftOf="@+id/SendMsg"
         android:text="Alerts Log" />
 
-    <Switch
+    <Button
         android:id="@+id/SOS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

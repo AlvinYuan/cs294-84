@@ -208,6 +208,10 @@ public class AudioSerial {
             // Read byte
             char c = 0;
             for (int bitIndex = 0; bitIndex < 8; bitIndex++) {
+                if (bufferIndex >= runningAverageMagnitude.length) {
+                    // Exceeded buffer. Bad state
+                    return null;
+                }
                 // Not inverted logic.
                 debuggingMessage += runningAverageMagnitude[bufferIndex] + " ";
                 int bit = runningAverageMagnitude[bufferIndex] > MIC_SERIAL_THRESHOLD ? 1 : 0;
@@ -281,6 +285,7 @@ public class AudioSerial {
 
             short[] bufferRX = new short[bufferSizeRX];
 
+            micAmplitudeSensor.stop(); // also releases resources
             AudioRecord audiorecord = 
                     new AudioRecord(MediaRecorder.AudioSource.MIC,
                                     sampleRate,
@@ -288,7 +293,6 @@ public class AudioSerial {
                                     AudioFormat.ENCODING_PCM_16BIT,
                                     bufferSizeRX * 2); // multiply bufferSizeRX by 2 since samples are shorts, not bytes
 
-            micAmplitudeSensor.stop(); // also releases resources
             audiorecord.startRecording();
             // Record message
             audiorecord.read(bufferRX, 0, bufferRX.length); // blocks until read finishes

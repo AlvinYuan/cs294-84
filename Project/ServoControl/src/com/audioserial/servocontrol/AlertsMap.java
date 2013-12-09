@@ -3,10 +3,11 @@ package com.audioserial.servocontrol;
 import com.google.android.gms.maps.GoogleMap;
 
 import android.os.Bundle;
-import android.app.Activity;
 import android.view.Menu;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 
-public class AlertsMap extends Activity {
+public class AlertsMap extends FragmentActivity {
     GoogleMap map;
 
     @Override

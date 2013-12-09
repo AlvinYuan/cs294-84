@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
@@ -99,14 +98,6 @@ public class Send_message_actvity extends Activity {
             @Override
             public void onStopTrackingTouch(SeekBar arg0) {
                 // TODO Auto-generated method stub
-            }
-        });
-
-        Switch sos = (Switch) findViewById(R.id.SOS);
-        sos.setOnClickListener(new OnClickListener() {
-
-            public void onClick(View v){
-                AudioSerial.singleton.send(new Packet(" SOS"), true);
             }
         });
 

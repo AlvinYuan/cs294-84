@@ -35,8 +35,8 @@
 // Hardware configuration
 //
 
-// Set up nRF24L01 radio on SPI bus plus pins 9 & 10
-RF24 radio(9,10);
+// Set up nRF24L01 radio on SPI bus plus pins 9 & 8
+RF24 radio(9,8);
 
 // Button read
 const int buttonPin = 2;

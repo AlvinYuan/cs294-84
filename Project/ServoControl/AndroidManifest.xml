@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="14"
+        android:minSdkVersion="10"
         android:targetSdkVersion="16" />
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -47,10 +47,11 @@
             android:name="com.audioserial.servocontrol.AlertsMap"
             android:label="@string/title_activity_alerts_map" >
         </activity>
+        <!--
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
+        -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyBul2tgxM_NXH3kZhTHbqwaVZUtZHit7eo"/>
