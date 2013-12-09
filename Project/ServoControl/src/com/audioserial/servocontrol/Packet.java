@@ -13,7 +13,8 @@ public class Packet {
     public static final String FIELD_DELIMITER_REGEX = "\\|";
 
     public static ArrayList<Packet> packetsReceived = new ArrayList<Packet>();
-    public static PacketAdapter packetAdapter; // Initialized in MainActivity.onCreate
+    public static PacketAdapter packetAdapter = null; // Initialized in MainActivity.onCreate
+    public static MapViewController mapViewController;
 
     enum PacketType {
         DANGER("D", "Danger Nearby"),
@@ -68,8 +69,8 @@ public class Packet {
         Toast.makeText(MainActivity.genericContext, p.readableFormat(), Toast.LENGTH_SHORT).show();
         packetsReceived.add(0, p);
         packetAdapter.notifyDataSetChanged();
-        if (AlertsMap.liveActivity != null) {
-            AlertsMap.liveActivity.addPacketToMap(p);
+        if (mapViewController != null) {
+            mapViewController.addPacketToMap(p);
         }
     }
 
@@ -167,12 +168,11 @@ public class Packet {
     }
 
     public static void generateTestPackets() {
-        packetsReceived.add(0, new Packet("|D|2|F|soda hall is on fire"));
-        packetsReceived.add(0, new Packet("|D|1|?|"));
-        packetsReceived.add(0, new Packet("|D|3|C|get out"));
-        packetsReceived.add(0, new Packet("|S|get out"));
-        packetsReceived.add(0, new Packet("blah"));
-        packetAdapter.notifyDataSetChanged();
+        retrievedNewPacket(new Packet("|D|2|F|soda hall is on fire"));
+        retrievedNewPacket(new Packet("|D|1|?|"));
+        retrievedNewPacket(new Packet("|D|3|C|get out"));
+        retrievedNewPacket(new Packet("|S|get out"));
+        retrievedNewPacket(new Packet("blah"));
     }
 
 }

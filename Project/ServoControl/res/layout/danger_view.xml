@@ -7,7 +7,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:fontFamily="sans-serif-light"
-    tools:context=".Send_message_actvity" >
+    tools:context=".DangerViewController" >
 
     <View
         android:id="@+id/line"
@@ -133,28 +133,11 @@
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <Button
-        android:id="@+id/AlertsMap"
+        android:id="@+id/SendMsg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:text="Alerts Map" />
-
-    <Button
-        android:id="@+id/AlertsLog"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/AlertsMap"
-        android:layout_alignBottom="@+id/AlertsMap"
-        android:layout_toLeftOf="@+id/AlertsMap"
-        android:text="Alerts Log" />
-
-    <Button
-        android:id="@+id/SendMsg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/AlertsMap"
-        android:layout_alignRight="@+id/AlertsMap"
         android:background="#0044cc"
         android:radius="10dp"
         android:text="Send Message"

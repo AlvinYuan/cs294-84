@@ -1,10 +1,6 @@
 package com.audioserial.servocontrol;
 
-import android.os.Bundle;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -14,21 +10,18 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
-public class Send_message_actvity extends Activity {
+public class DangerViewController {
     TextView details;
     Packet.TypeOfDanger dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
     Packet.LevelOfDanger dangerLevel = Packet.LevelOfDanger.PROCEED_WITH_CAUTION;
     Button sendMessageButton, seeAlertsLog, seeAlertsMap;
     RadioGroup g1, g2;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_send_message_actvity);
-        details = (TextView) findViewById(R.id.Details);
+    public DangerViewController(View dangerView, Activity activity) {
+        details = (TextView) dangerView.findViewById(R.id.Details);
 
         //what the danger is, fire, flood?
-        g1 = (RadioGroup) findViewById(R.id.radioGroup1);
+        g1 = (RadioGroup) dangerView.findViewById(R.id.radioGroup1);
         g1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -42,7 +35,7 @@ public class Send_message_actvity extends Activity {
             }
         });
 
-        g2 = (RadioGroup) findViewById(R.id.radioGroup2);
+        g2 = (RadioGroup) dangerView.findViewById(R.id.radioGroup2);
         g2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -56,7 +49,7 @@ public class Send_message_actvity extends Activity {
         });
 
         //what the lvl of danger is?
-        SeekBar sb = (SeekBar) findViewById(R.id.DangerLvlBar);
+        SeekBar sb = (SeekBar) dangerView.findViewById(R.id.DangerLvlBar);
         sb.setOnSeekBarChangeListener( new OnSeekBarChangeListener(){
 
             @Override
@@ -92,7 +85,7 @@ public class Send_message_actvity extends Activity {
             }
         });
 
-        sendMessageButton = (Button) findViewById(R.id.SendMsg);
+        sendMessageButton = (Button) dangerView.findViewById(R.id.SendMsg);
         sendMessageButton.setOnClickListener(new OnClickListener() {
 
             public void onClick(View v) {
@@ -100,28 +93,6 @@ public class Send_message_actvity extends Activity {
             }
         });
 
-        final Context self = this;
-        seeAlertsLog = (Button) findViewById(R.id.AlertsLog);
-        seeAlertsLog.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                Intent logIntent = new Intent(self, AlertsLog.class);
-                startActivity(logIntent);
-            }
-        });
-
-        seeAlertsMap = (Button) findViewById(R.id.AlertsMap);
-        seeAlertsMap.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                Intent mapIntent = new Intent(self, AlertsMap.class);
-                startActivity(mapIntent);
-            }
-        });
-    }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.send_message_actvity, menu);
-        return true;
     }
 
 }

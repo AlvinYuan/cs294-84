@@ -10,24 +10,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 import android.support.v4.app.FragmentActivity;
 
-public class AlertsMap extends FragmentActivity
-        implements OnMarkerClickListener, InfoWindowAdapter {
+public class MapViewController implements OnMarkerClickListener, InfoWindowAdapter {
 
     GoogleMap map;
-    public static AlertsMap liveActivity = null;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_alerts_map);
-
-        liveActivity = this;
-        map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+    public MapViewController(View map_view, FragmentActivity activity) {
+        map = ((SupportMapFragment) activity.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
         map.getUiSettings().setMyLocationButtonEnabled(true);
         map.setMyLocationEnabled(true);
         map.setInfoWindowAdapter(this);
@@ -47,6 +38,7 @@ public class AlertsMap extends FragmentActivity
     }
 
     public void addPacketToMap(Packet p) {
+        System.out.println("Blah");
         if (p.loc != null) {
             float hue;
             switch (p.packetType) {
@@ -73,24 +65,14 @@ public class AlertsMap extends FragmentActivity
                 hue = BitmapDescriptorFactory.HUE_ROSE;
                 break;
             }
+            System.out.println("Bleh");
+
             Marker marker = map.addMarker(
                     new MarkerOptions().
                     position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).
                     title(p.readableFormat()).
-//                    snippet().
                     icon(BitmapDescriptorFactory.defaultMarker(hue)));
         }
-    }
-    @Override
-    protected void onDestroy() {
-        liveActivity = null;
-        super.onDestroy();
-    }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.alerts_map, menu);
-        return true;
     }
 
     @Override

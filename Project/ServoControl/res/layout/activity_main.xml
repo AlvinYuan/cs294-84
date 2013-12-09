@@ -4,111 +4,150 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:id="@+id/sensorReadingTextView"
+    <LinearLayout
+        android:id="@+id/TabLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/micTextView"
-        android:text="Sensor Reading: "
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" >
 
-    <EditText
-        android:id="@+id/BaudRateEditText"
+        <RelativeLayout
+            android:id="@+id/DangerTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTabClick" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Danger" />
+            <View
+                android:id="@+id/SelectedTabHighlight1"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_below= "@+id/textView1"
+                android:background="#ff33b5e5" />
+
+        </RelativeLayout>
+
+        <View
+             android:id="@+id/line1"
+             android:layout_width="1dp"
+             android:layout_height="match_parent"
+             android:background="@android:color/darker_gray" />
+
+        <RelativeLayout
+            android:id="@+id/SOSTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTabClick" >
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="SOS" />
+            <View
+                android:id="@+id/SelectedTabHighlight2"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_below= "@+id/textView2"
+                android:background="#ff33b5e5"
+                android:visibility="invisible" />
+
+        </RelativeLayout>
+
+        <View
+             android:id="@+id/line2"
+             android:layout_width="1dp"
+             android:layout_height="match_parent"
+             android:background="@android:color/darker_gray" />
+
+        <RelativeLayout
+            android:id="@+id/LogTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTabClick" >
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Log" />
+            <View
+                android:id="@+id/SelectedTabHighlight3"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_below= "@+id/textView3"
+                android:background="#ff33b5e5"
+                android:visibility="invisible" />
+
+        </RelativeLayout>
+
+        <View
+             android:id="@+id/line3"
+             android:layout_width="1dp"
+             android:layout_height="match_parent"
+             android:background="@android:color/darker_gray" />
+
+        <RelativeLayout
+            android:id="@+id/MapTab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTabClick" >
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Map" />
+
+            <View
+                android:id="@+id/SelectedTabHighlight4"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_below="@+id/textView4"
+                android:background="#ff33b5e5"
+                android:visibility="invisible" />
+
+            </RelativeLayout>
+    </LinearLayout>
+    <View
+        android:id="@+id/TabBreak"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below= "@+id/TabLayout"
+        android:background="@android:color/darker_gray" />
+    <RelativeLayout
+        android:id="@+id/ContainerView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/sensorReadingTextView"
-        android:ems="10"
-        android:inputType="number"
-        android:text="200" >
-
-        <requestFocus />
-    </EditText>
-
-    <EditText
-        android:id="@+id/SampleRateEditText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/BaudRateEditText"
-        android:ems="10"
-        android:inputType="number"
-        android:text="44100" />
-
-    <TextView
-        android:id="@+id/AlertsHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/BaudRateEditText"
-        android:layout_toRightOf="@+id/resetButton"
-        android:text="Baudrate" />
-
-    <TextView
-        android:id="@+id/optionalTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/SampleRateEditText"
-        android:layout_alignLeft="@+id/AlertsHeader"
-        android:text="Sample Rate" />
-
-    <Button
-        android:id="@+id/DangerButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="Danger" />
-
-    <TextView
-        android:id="@+id/micTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/DangerButton"
-        android:text="MIC?"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <TextView
-        android:id="@+id/BufferSizeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/SampleRateEditText"
-        android:text="Buffer Size" />
-
-    <Button
-        android:id="@+id/resetButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/BufferSizeTextView"
-        android:text="Reset Audio Connection" />
-
-    <Button
-        android:id="@+id/SOSButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/DangerButton"
-        android:text="SOS" />
-
-    <TextView
-        android:id="@+id/CustomMessageTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/resetButton"
-        android:text="Custom Message"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <Button
-        android:id="@+id/newB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/CustomMessageTextView"
-        android:layout_below="@+id/CustomMessageTextView"
-        android:layout_marginTop="70dp"
-        android:text="toMSGsender" />
+        android:layout_below="@+id/TabBreak" />
 
 </RelativeLayout>
