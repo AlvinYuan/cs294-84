@@ -3,18 +3,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/list_selector"
-    android:orientation="horizontal"
-    android:padding="5dip" >
+    android:paddingLeft="5dip"
+    android:paddingRight="8dip" >
 
     <TextView
-        android:id="@+id/MessageTextView"
+        android:id="@+id/TypeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/TimestampTextView"
-        android:text="Message" />
+        android:layout_marginRight="5dip"
+        android:text="Packet Type" />
 
     <TextView
         android:id="@+id/TimestampTextView"
@@ -23,5 +22,22 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:text="Timestamp" />
+
+    <TextView
+        android:id="@+id/MessageTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TypeTextView"
+        android:layout_below="@+id/TypeTextView"
+        android:text="Message" />
+
+    <TextView
+        android:id="@+id/DangerTypeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/TypeTextView"
+        android:layout_alignBottom="@+id/TypeTextView"
+        android:layout_toRightOf="@+id/TypeTextView"
+        android:text="Danger Type" />
 
 </RelativeLayout>

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,7 +32,24 @@ public class PacketAdapter extends ArrayAdapter<Packet> implements OnClickListen
 
         Packet p = (Packet) super.getItem(position);
         // Modify the list element view with information specific to p
-        ((TextView) v.findViewById(R.id.MessageTextView)).setText(p.readableFormat());
+        TextView packetTypeTextView = (TextView) v.findViewById(R.id.TypeTextView);
+        packetTypeTextView.setText(p.packetType.readable);
+        if (p.packetType == Packet.PacketType.SOS) {
+            packetTypeTextView.setTextColor(0xff0099cc);
+        } else if (p.packetType == Packet.PacketType.DANGER) {
+            switch (p.dangerLevel) {
+            case PROCEED_WITH_CAUTION:
+                packetTypeTextView.setTextColor(0xffffcc22);
+                break;
+            case EVACUATE_THE_AREA:
+                packetTypeTextView.setTextColor(0xffcc0000);
+                break;
+            default:
+                packetTypeTextView.setTextColor(0xffff8800);
+            }
+        }
+        ((TextView) v.findViewById(R.id.DangerTypeTextView)).setText(p.dangerType.readable);
+        ((TextView) v.findViewById(R.id.MessageTextView)).setText(p.customMessage);
         ((TextView) v.findViewById(R.id.TimestampTextView)).setText(p.timeStamp);
         return v;
     }

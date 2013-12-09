@@ -31,7 +31,7 @@ public class Packet {
     enum TypeOfDanger {
         FIRE("F", "Fire"),
         CHEMICAL("C", "Chemical"),
-        UNSTABLE_SURROUNDINGS("U", "Unstable Surroundings"),
+        UNSTABLE_SURROUNDINGS("U", "Structurally Unsound"),
         NOT_SPECIFIED("?", "");
 
         final String encoding;
@@ -172,7 +172,6 @@ public class Packet {
         retrievedNewPacket(new Packet("|D|1|?|"));
         retrievedNewPacket(new Packet("|D|3|C|get out"));
         retrievedNewPacket(new Packet("|S|get out"));
-        retrievedNewPacket(new Packet("blah"));
     }
 
 }
