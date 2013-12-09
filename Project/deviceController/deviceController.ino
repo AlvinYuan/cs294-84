@@ -91,7 +91,7 @@ const int dangerLevelIndex = 3;
 
 
 // AudioSerial
-SoftwareSerial audioSerial(audioSerialRX, DO_NOT_USE_PIN, true); // inverted logic (logical 1 = LOW voltage, logical 0 = HIGH voltage)
+SoftwareSerial audioSerial(audioSerialRX, DO_NOT_USE_PIN, false);
 const long baudrateRX = 300;
 const long baudrateTX = 200;
 
