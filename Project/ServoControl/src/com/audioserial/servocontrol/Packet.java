@@ -129,7 +129,10 @@ public class Packet {
             }
             break;
         case SOS:
-            // TODO: fill
+            if (fields.length > 2) {
+                customMessage = fields[2];
+            }
+            break;
         default:
             customMessage = packetString;
         }
@@ -168,10 +171,35 @@ public class Packet {
     }
 
     public static void generateTestPackets() {
-        retrievedNewPacket(new Packet("|D|2|F|soda hall is on fire"));
-        retrievedNewPacket(new Packet("|D|1|?|"));
-        retrievedNewPacket(new Packet("|D|3|C|get out"));
-        retrievedNewPacket(new Packet("|S|get out"));
+        Packet p = new Packet("|D|3|F|get out of the building now");
+        p.loc.setLatitude(p.loc.getLatitude() - .0005);
+        p.loc.setLongitude(p.loc.getLongitude() - .0005);
+        retrievedNewPacket(p);
+
+        p = new Packet("|D|3|F|no one is hurt, but huge fire.");
+        p.loc.setLatitude(p.loc.getLatitude() - .00051);
+        p.loc.setLongitude(p.loc.getLongitude() - .00049);
+        retrievedNewPacket(p);
+
+        p = new Packet("|D|3|F|");
+        p.loc.setLatitude(p.loc.getLatitude() - .00051);
+        p.loc.setLongitude(p.loc.getLongitude() - .00048);
+        retrievedNewPacket(p);
+
+        p = new Packet("|D|2|?|");
+        p.loc.setLatitude(p.loc.getLatitude() + .0006);
+        p.loc.setLongitude(p.loc.getLongitude() + .00075);
+        retrievedNewPacket(p);
+
+        p = new Packet("|D|1|U|avoid the cracked walls");
+        p.loc.setLatitude(p.loc.getLatitude() + .0009);
+        p.loc.setLongitude(p.loc.getLongitude() + .0009);
+        retrievedNewPacket(p);
+
+        p = new Packet("|S|foot is stuck under rubble");
+        p.loc.setLatitude(p.loc.getLatitude() + .0009);
+        p.loc.setLongitude(p.loc.getLongitude() + .0004);
+        retrievedNewPacket(p);
     }
 
 }

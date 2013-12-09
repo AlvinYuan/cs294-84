@@ -38,7 +38,6 @@ public class MapViewController implements OnMarkerClickListener, InfoWindowAdapt
     }
 
     public void addPacketToMap(Packet p) {
-        System.out.println("Blah");
         if (p.loc != null) {
             float hue;
             switch (p.packetType) {
@@ -65,12 +64,23 @@ public class MapViewController implements OnMarkerClickListener, InfoWindowAdapt
                 hue = BitmapDescriptorFactory.HUE_ROSE;
                 break;
             }
-            System.out.println("Bleh");
 
+            String title = "";
+            if (p.dangerType != Packet.TypeOfDanger.NOT_SPECIFIED) {
+                title += p.dangerType.readable;
+                if (!p.customMessage.equals("")) {
+                    title += ": ";
+                }
+            }
+            title += p.customMessage;
+
+            if (title.equals("")) {
+                title = p.packetType.readable;
+            }
             Marker marker = map.addMarker(
                     new MarkerOptions().
                     position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).
-                    title(p.readableFormat()).
+                    title(title).
                     icon(BitmapDescriptorFactory.defaultMarker(hue)));
         }
     }
