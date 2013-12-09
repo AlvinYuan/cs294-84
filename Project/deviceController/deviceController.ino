@@ -37,13 +37,13 @@ const int SPI_SS = 10; // not used by device, but the pin should not be used for
 const int SPI_MOSI = 11;
 const int SPI_MISO = 12;
 const int SPI_SCK = 13;
-const int sosNearbyLED = A0;
-const int severeDangerLED = A1;
-const int dangerNearbyLED = A2;
+const int severeDangerLED = A0;
+const int dangerNearbyLED = A1;
+const int sosNearbyLED = A2;
 const int sosSwitch = A3;
 const int DO_NOT_USE_PIN = A4; // For SoftwareSerialTX, which is not used.
-const int sosOnLED = 5; //A6;
-const int dangerButton = 7; //A7;
+const int sosOnLED = 5;
+const int dangerButton = 2;
 
 /*
  * Pins Additional Info
