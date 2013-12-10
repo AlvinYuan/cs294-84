@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ public class MainActivity extends FragmentActivity implements LocationListener {
     View tabButtons[] = new View[numTabs];
     View tabHighlights[] = new View[numTabs];
     View tabContents[] = new View[numTabs];
+    SOSViewController sosViewController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,7 @@ public class MainActivity extends FragmentActivity implements LocationListener {
         tabContents[1] = inflater.inflate(R.layout.sos_view, tabContentParent, false);
         tabContents[1].setVisibility(View.INVISIBLE);
         tabContentParent.addView(tabContents[1]);
+        sosViewController = new SOSViewController(tabContents[1], this);
         // Log
         tabContents[2] = inflater.inflate(R.layout.log_view, tabContentParent, false);
         tabContents[2].setVisibility(View.INVISIBLE);
@@ -89,6 +92,10 @@ public class MainActivity extends FragmentActivity implements LocationListener {
     }
 
     public void onTabClick(View v) {
+        if (getCurrentFocus() != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
         for (int i = 0; i < numTabs; i++) {
             if (tabButtons[i].equals(v)) {
                 if (i != activeTabIndex) {
@@ -119,8 +126,8 @@ public class MainActivity extends FragmentActivity implements LocationListener {
     public void onDestroy() {
         super.onDestroy();
         getApplicationContext().unregisterReceiver(mReceiver);
-        // Test this change from onStop to onDestroy and moved startRX to a single call
         AudioSerial.singleton.stopRX();
+        sosViewController.stop();
     }
 
     //http://stackoverflow.com/questions/14708636/detect-whether-headset-has-microphone

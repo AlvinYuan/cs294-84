@@ -180,8 +180,22 @@ void loop(){
     // TODO: detect phone connect (another packet type, sent by phone upon connecting)
 
     // Do Actions with fresh readAudioSerialPacket
-      // Broadcast packet out
-    sendRadioPacket(readAudioSerialPacket, readAudioSerialPacketSize);
+      // Parse packet
+    long currentTime = millis();
+    if (readAudioSerialPacketSize > packetTypeIndex) {
+      if (readAudioSerialPacket[packetTypeIndex] == TYPE_SOS) {
+        if (digitalRead(sosSwitch) == LOW) {
+          // Switch is on.
+          // Send read packet and update last SOS send time.
+          // Expects that phone will send SOS messages periodically
+          lastSosSendTime = currentTime + SOS_SEND_PERIOD;
+          sendRadioPacket(readAudioSerialPacket, readAudioSerialPacketSize);
+        }
+      } else if (readAudioSerialPacket[packetTypeIndex] == TYPE_DANGER) {
+        // Broadcast danger packet out
+        sendRadioPacket(readAudioSerialPacket, readAudioSerialPacketSize);
+      }
+    }
 
     // Clear packet data
     memset(readAudioSerialPacket, 0, readAudioSerialPacketSize);
