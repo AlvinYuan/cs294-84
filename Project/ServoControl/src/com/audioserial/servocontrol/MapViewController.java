@@ -79,7 +79,7 @@ public class MapViewController implements OnMarkerClickListener, InfoWindowAdapt
             }
             Marker marker = map.addMarker(
                     new MarkerOptions().
-                    position(new LatLng(p.loc.getLatitude(), p.loc.getLongitude())).
+                    position(p.loc).
                     title(title).
                     icon(BitmapDescriptorFactory.defaultMarker(hue)));
         }

@@ -1,10 +1,12 @@
 package com.audioserial.servocontrol;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import android.location.Location;
+import com.google.android.gms.maps.model.LatLng;
+
 import android.widget.Toast;
 
 public class Packet {
@@ -61,9 +63,11 @@ public class Packet {
     TypeOfDanger dangerType = TypeOfDanger.NOT_SPECIFIED;
     LevelOfDanger dangerLevel = LevelOfDanger.NOT_SPECIFIED;
     String customMessage = "";
+    LatLng loc = null;
+
+    // Relevant for reading packets, but not for sending
     String timeStamp = new SimpleDateFormat("h:mm").format(Calendar.getInstance().getTime());
-    Location loc = null;
-    boolean locFromPacket; // if false, loc refers to location of user when they received the.packet.
+    boolean locFromPacket; // if false, loc refers to location of user when they received the packet.
 
     public static void retrievedNewPacket(Packet p) {
         Toast.makeText(MainActivity.genericContext, p.readableFormat(), Toast.LENGTH_SHORT).show();
@@ -79,7 +83,11 @@ public class Packet {
         this.dangerType = dangerType;
         this.dangerLevel = dangerLevel;
         this.customMessage = customMessage;
+        if (MainActivity.currentLocation != null) {
+            loc = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
+        }
     }
+
     public Packet(String packetString) {
         // Parse packetString for fields
         String[] fields = packetString.split(FIELD_DELIMITER_REGEX);
@@ -127,20 +135,36 @@ public class Packet {
             if (fields.length > 4) {
                 customMessage = fields[4];
             }
+            if (fields.length > 6 && fields[5].length() > 0 && fields[6].length() > 0) {
+                try {
+                    loc = new LatLng(Double.parseDouble(fields[5]), Double.parseDouble(fields[6]));
+                    locFromPacket = true;
+                } catch(Exception E) {
+                    loc = null;
+                }
+            }
             break;
         case SOS:
             if (fields.length > 2) {
                 customMessage = fields[2];
+            }
+            if (fields.length > 4 && fields[3].length() > 0 && fields[4].length() > 0) {
+                try {
+                    loc = new LatLng(Double.parseDouble(fields[3]), Double.parseDouble(fields[4]));
+                    locFromPacket = true;
+                } catch(Exception E) {
+                    loc = null;
+                }
             }
             break;
         default:
             customMessage = packetString;
         }
 
-        // TODO: encode loc in packets
-        // For now, always set loc to user's current location
-        loc = MainActivity.currentLocation;
-        locFromPacket = false;
+        if (loc == null && MainActivity.currentLocation != null) {
+            loc = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
+            locFromPacket = false;
+        }
     }
 
     public String stringRepresentation() {
@@ -151,6 +175,8 @@ public class Packet {
             str += FIELD_DELIMITER + dangerType.encoding;
         }
         str += FIELD_DELIMITER + customMessage;
+        str += FIELD_DELIMITER + (loc == null ? "" : new DecimalFormat("#.####").format(loc.latitude));
+        str += FIELD_DELIMITER + (loc == null ? "" : new DecimalFormat("#.####").format(loc.longitude));
         str += PACKET_DELIMITER;
         return str;
     }
@@ -172,33 +198,43 @@ public class Packet {
 
     public static void generateTestPackets() {
         Packet p = new Packet("|D|3|F|get out of the building now");
-        p.loc.setLatitude(p.loc.getLatitude() - .0005);
-        p.loc.setLongitude(p.loc.getLongitude() - .0005);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() - .0005,
+                MainActivity.currentLocation.getLongitude() - .0005);
         retrievedNewPacket(p);
 
         p = new Packet("|D|3|F|no one is hurt, but huge fire.");
-        p.loc.setLatitude(p.loc.getLatitude() - .00051);
-        p.loc.setLongitude(p.loc.getLongitude() - .00049);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() - .00051,
+                MainActivity.currentLocation.getLongitude() - .00049);
         retrievedNewPacket(p);
 
         p = new Packet("|D|3|F|");
-        p.loc.setLatitude(p.loc.getLatitude() - .00051);
-        p.loc.setLongitude(p.loc.getLongitude() - .00048);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() - .00051,
+                MainActivity.currentLocation.getLongitude() - .00048);
         retrievedNewPacket(p);
 
         p = new Packet("|D|2|?|");
-        p.loc.setLatitude(p.loc.getLatitude() + .0006);
-        p.loc.setLongitude(p.loc.getLongitude() + .00075);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() + .0006,
+                MainActivity.currentLocation.getLongitude() + .0007);
         retrievedNewPacket(p);
 
         p = new Packet("|D|1|U|avoid the cracked walls");
-        p.loc.setLatitude(p.loc.getLatitude() + .0009);
-        p.loc.setLongitude(p.loc.getLongitude() + .0009);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() + .0009,
+                MainActivity.currentLocation.getLongitude() + .0009);
         retrievedNewPacket(p);
 
         p = new Packet("|S|foot is stuck under rubble");
-        p.loc.setLatitude(p.loc.getLatitude() + .0009);
-        p.loc.setLongitude(p.loc.getLongitude() + .0004);
+        p.loc = new LatLng(
+                MainActivity.currentLocation.getLatitude() + .0009,
+                MainActivity.currentLocation.getLongitude() + .0004);
+        retrievedNewPacket(p);
+        p = new Packet("|S|lost|37.8755|-122.2568");
+        retrievedNewPacket(p);
+        p = new Packet("|D|?|?|confusion|37.8756|-122.2569");
         retrievedNewPacket(p);
     }
 

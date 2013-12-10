@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements LocationListener {
     public static Context genericContext;
@@ -130,13 +131,13 @@ public class MainActivity extends FragmentActivity implements LocationListener {
             if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                 Log.d("HeadSetPlugInTest", "state: " + intent.getIntExtra("state", -1));
                 Log.d("HeadSetPlugInTest", "microphone: " + intent.getIntExtra("microphone", -1));
-//                if (intent.getIntExtra("state", -1) != 1) {
-//                    micTextView.setText("No AUDIO CONNECTION FOUND");
-//                } else if (intent.getIntExtra("microphone", -1) == 1) {
-//                    micTextView.setText("MIC FOUND");
-//                } else {
-//                    micTextView.setText("NO MIC FOUND");
-//                }
+                if (intent.getIntExtra("state", -1) != 1) {
+                    Toast.makeText(MainActivity.genericContext, "No audio connection", Toast.LENGTH_SHORT).show();
+                } else if (intent.getIntExtra("microphone", -1) == 1) {
+                    Toast.makeText(MainActivity.genericContext, "Mic connected", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.genericContext, "No Mic detected", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     };
