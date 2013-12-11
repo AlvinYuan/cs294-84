@@ -7,6 +7,8 @@ import java.util.Calendar;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import android.content.Context;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 public class Packet {
@@ -69,8 +71,12 @@ public class Packet {
     String timeStamp = new SimpleDateFormat("h:mm").format(Calendar.getInstance().getTime());
     boolean locFromPacket; // if false, loc refers to location of user when they received the packet.
 
-    public static void retrievedNewPacket(Packet p) {
-        Toast.makeText(MainActivity.genericContext, p.readableFormat(), Toast.LENGTH_SHORT).show();
+    public static void retrievedNewPacket(Packet p, boolean silent) {
+        if (!silent) {
+            Toast.makeText(MainActivity.genericContext, "Received new message!", Toast.LENGTH_SHORT).show();
+            Vibrator v = (Vibrator) MainActivity.genericContext.getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(500);
+        }
         packetsReceived.add(0, p);
         packetAdapter.notifyDataSetChanged();
         if (mapViewController != null) {
@@ -197,45 +203,47 @@ public class Packet {
     }
 
     public static void generateTestPackets() {
+        double lat = MainActivity.currentLocation == null ? 37.8748 : MainActivity.currentLocation.getLatitude();
+        double lng = MainActivity.currentLocation == null ? -122.2583 : MainActivity.currentLocation.getLongitude();
         Packet p = new Packet("|D|3|F|get out of the building now");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() - .0005,
-                MainActivity.currentLocation.getLongitude() - .0005);
-        retrievedNewPacket(p);
+                lat - .0005,
+                lng - .0005);
+        retrievedNewPacket(p, true);
 
         p = new Packet("|D|3|F|no one is hurt, but huge fire.");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() - .00051,
-                MainActivity.currentLocation.getLongitude() - .00049);
-        retrievedNewPacket(p);
+                lat - .00051,
+                lng - .00049);
+        retrievedNewPacket(p, true);
 
         p = new Packet("|D|3|F|");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() - .00051,
-                MainActivity.currentLocation.getLongitude() - .00048);
-        retrievedNewPacket(p);
+                lat - .00051,
+                lng - .00048);
+        retrievedNewPacket(p, true);
 
         p = new Packet("|D|2|?|");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() + .0006,
-                MainActivity.currentLocation.getLongitude() + .0007);
-        retrievedNewPacket(p);
+                lat + .0006,
+                lng + .0007);
+        retrievedNewPacket(p, true);
 
         p = new Packet("|D|1|U|avoid the cracked walls");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() + .0009,
-                MainActivity.currentLocation.getLongitude() + .0009);
-        retrievedNewPacket(p);
+                lat + .0009,
+                lng + .0009);
+        retrievedNewPacket(p, true);
 
         p = new Packet("|S|foot is stuck under rubble");
         p.loc = new LatLng(
-                MainActivity.currentLocation.getLatitude() + .0009,
-                MainActivity.currentLocation.getLongitude() + .0004);
-        retrievedNewPacket(p);
+                lat + .0009,
+                lng + .0004);
+        retrievedNewPacket(p, true);
         p = new Packet("|S|lost|37.8755|-122.2568");
-        retrievedNewPacket(p);
+        retrievedNewPacket(p, true);
         p = new Packet("|D|?|?|confusion|37.8756|-122.2569");
-        retrievedNewPacket(p);
+        retrievedNewPacket(p, true);
     }
 
 }

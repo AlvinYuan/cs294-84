@@ -95,6 +95,11 @@ public class AudioSerial {
         int TXbufferSize = TXbufferSize();
         String str = p.stringRepresentation();
 
+        if (str.length() > MAX_MESSAGE_SIZE) {
+            Toast.makeText(MainActivity.genericContext, "Message is too long.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         for (int i = 0; i < str.length(); i++) {
             send(str.charAt(i), isInverted);
         }
@@ -153,7 +158,7 @@ public class AudioSerial {
         int micPolledAmplitude = micAmplitudeSensor.getAmplitude();
 
         if (micPolledAmplitude > MIC_SERIAL_THRESHOLD) {
-            Toast.makeText(MainActivity.genericContext, "Retrieving Packet", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(MainActivity.genericContext, "Retrieving Packet", Toast.LENGTH_SHORT).show();
             // background task.
             // Note that while packet is being retrieved, micAmplitudeSensor is disabled.
             // So until the packet retrieval finishes, micAmplitudeSensor.getAmplitude() will return 0.
@@ -312,9 +317,9 @@ public class AudioSerial {
             }
 
             if (result != null) {
-                Packet.retrievedNewPacket(new Packet(result));
+                Packet.retrievedNewPacket(new Packet(result), false);
             } else {
-                Toast.makeText(MainActivity.genericContext, "BAD PACKET", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.genericContext, "BAD PACKET", Toast.LENGTH_SHORT).show();
             }
         }
     }

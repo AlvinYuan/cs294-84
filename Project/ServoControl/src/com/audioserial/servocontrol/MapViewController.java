@@ -28,13 +28,17 @@ public class MapViewController implements OnMarkerClickListener, InfoWindowAdapt
             // Construct marker
             addPacketToMap(p);
         }
+
+        LatLng centerLocation;
         if (MainActivity.currentLocation != null) {
-            // Not perfectly centered for some reason, but very close. Good enough I guess.
-            LatLng location = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
-            // Zoom in, animating the camera.
-            map.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+            centerLocation = new LatLng(MainActivity.currentLocation.getLatitude(), MainActivity.currentLocation.getLongitude());
+        } else {
+            centerLocation = new LatLng(37.8748,-122.2583);
         }
+
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(centerLocation, 15));
+        // Zoom in, animating the camera.
+        map.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
     }
 
     public void addPacketToMap(Packet p) {
