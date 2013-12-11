@@ -25,6 +25,8 @@ const long SOS_SEND_PERIOD = 5000;
 const long LED_BLINK_PERIOD = 500;
 const long LED_BLINK_DURATION = 2 * LED_BLINK_PERIOD;
 const long LED_ON_DURATION = 5000; // includes blinking time
+const long PIEZO_DURATION = 900;
+const long DANGER_BUTTON_FLASH_DURATION = 200;
 
 // Pins
 // Commented pins pertain to actual device (pro mini) when it differs from breadboard (boarduino).
@@ -116,6 +118,9 @@ int lastButtonState = HIGH; // the previous reading from the input pin
 // SOS Switch
 long lastSosSendTime = 0;
 
+// Danger Button
+long lastDangerButtonSendTime = 0;
+
 // LEDs
 long lastSosReceivedTime = 0;
 long lastSevereDangerReceivedTime = 0;
@@ -206,6 +211,21 @@ void loop(){
   dangerButtonLoop();
 
   sosSwitchLoop();
+
+  // Piezo
+  long currentTime = millis();
+  if (   currentTime - lastSosReceivedTime < PIEZO_DURATION / 3
+      || currentTime - lastDangerReceivedTime < PIEZO_DURATION / 3) {
+    analogWrite(piezoSpeaker, 255/2);
+  } else if (   currentTime - lastSosReceivedTime < PIEZO_DURATION * 2 / 3
+             || currentTime - lastDangerReceivedTime < PIEZO_DURATION * 2/ 3) {
+    analogWrite(piezoSpeaker, 0);
+  } else if (   currentTime - lastSosReceivedTime < PIEZO_DURATION
+             || currentTime - lastDangerReceivedTime < PIEZO_DURATION) {
+    analogWrite(piezoSpeaker, 255/2);
+  } else {
+    analogWrite(piezoSpeaker, 0);
+  }
 
   updateLEDsLoop();
 }
@@ -361,6 +381,7 @@ void dangerButtonPressed() {
   Serial.println("Danger button pressed");
   char packet[] = "|D|\n";
   sendRadioPacket(packet,5);
+  lastDangerButtonSendTime = millis();
 }
 
 /********************
@@ -482,16 +503,14 @@ void setPwmFrequency(int pin, int divisor) {
 
 Code to check whether the SOS switch is on and periodically send SOS messages.
 This should run in the main loop.
-TODO: update message sent once protocol is fleshed out.
 ********************/
 void sosSwitchLoop() {
   int reading = digitalRead(sosSwitch);
-  sosOnLEDState = reading == HIGH ? LOW : HIGH;
 
   long currentTime = millis();
   if (currentTime - lastSosSendTime > SOS_SEND_PERIOD) {
 
-    if (reading == LOW) {
+    if (reading == HIGH) {
       Serial.println("SOS sending");
       char message[] = "|S|\n";
       sendRadioPacket(message, 5);
@@ -511,8 +530,20 @@ void updateLEDsLoop() {
   int sosNearbyLEDState = blinkThenHoldLEDState(currentTime, lastSosReceivedTime);
   int severeDangerLEDState = blinkThenHoldLEDState(currentTime, lastSevereDangerReceivedTime);
   int dangerNearbyLEDState = blinkThenHoldLEDState(currentTime, lastDangerReceivedTime);
-  // sosOnLEDState set in sosSwitchLoop()
-  
+  // sosOnLEDState set in sosSwitchLoop(), but will flash once based on lastDangerButtonSendTime;
+  if (currentTime - lastDangerButtonSendTime < DANGER_BUTTON_FLASH_DURATION) {
+    sosOnLEDState = HIGH;
+  } else if (currentTime - lastDangerButtonSendTime < DANGER_BUTTON_FLASH_DURATION * 2) {
+    sosOnLEDState = LOW;
+  } else if (currentTime - lastDangerButtonSendTime < DANGER_BUTTON_FLASH_DURATION * 3) {
+    sosOnLEDState = HIGH;
+  } else if (currentTime - lastDangerButtonSendTime < DANGER_BUTTON_FLASH_DURATION * 4) {
+    sosOnLEDState = LOW;
+  } else {
+    int reading = digitalRead(sosSwitch);
+    sosOnLEDState = reading;
+  }
+
   // Update LEDs
   digitalWrite(sosNearbyLED, sosNearbyLEDState);
   digitalWrite(severeDangerLED, severeDangerLEDState);
