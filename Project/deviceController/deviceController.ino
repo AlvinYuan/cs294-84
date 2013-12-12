@@ -74,6 +74,13 @@ int readRadioPacketSize;
 char sendingAudioSerialPacket[MAX_PACKET_SIZE];
 int sendingAudioSerialPacketSize;
 
+// Ring Buffer for sending AudioSerial packets
+const int RING_BUFFER_SIZE = 8;
+char ringBuffer[RING_BUFFER_SIZE][MAX_PACKET_SIZE];
+int ringBufferSizes[RING_BUFFER_SIZE];
+int ringBufferNextSendIndex = 0;
+int ringBufferNextQueueIndex = 0;
+
 // Packet Protocol
 // Should match Android Packet class
 enum PacketType {
@@ -158,11 +165,17 @@ void setup(){
 
 void loop(){
   if (readRadio()) {
-    // TODO: buffer radio messagess
 
     // Do Actions with fresh readRadioPacket
-      // Forward packet to phone
-    sendAudioSerialPacket(readRadioPacket, readRadioPacketSize);
+      // Buffer radio messages
+    int newRingBufferNextQueueIndex = (ringBufferNextQueueIndex + 1) % RING_BUFFER_SIZE;
+    if (newRingBufferNextQueueIndex != ringBufferNextSendIndex) {
+      for (int i = 0; i < readRadioPacketSize; i++) {
+        ringBuffer[ringBufferNextQueueIndex][i] = readRadioPacket[i];
+      }
+      ringBufferSizes[ringBufferNextQueueIndex] = readRadioPacketSize;
+      ringBufferNextQueueIndex = newRingBufferNextQueueIndex; 
+    }
 
       // Parse packet
     long currentTime = millis();
@@ -179,6 +192,12 @@ void loop(){
 
     // Clear packet data
     memset(readRadioPacket, 0, readRadioPacketSize);
+  }
+
+  // Send AudioSerial packets if possible
+  if (audioSerialStateTX == TX_AVAILABLE && ringBufferNextSendIndex != ringBufferNextQueueIndex) {
+    sendAudioSerialPacket(ringBuffer[ringBufferNextSendIndex], ringBufferSizes[ringBufferNextSendIndex]);
+    ringBufferNextSendIndex = (ringBufferNextSendIndex + 1) % RING_BUFFER_SIZE;
   }
 
   if (readAudioSerial()) {
@@ -252,7 +271,8 @@ void audioSerialTXLoop() {
     // TX has finished, but must wait till phone is ready before sending again.
     case TX_FINISHED:
       // Next state function
-      if (timeSinceStart > LONG_START_BIT_MICROS + STOP1_BIT_MICROS + microsPerBit * BITS_PER_BYTE * MAX_PACKET_SIZE) {
+      if (timeSinceStart > LONG_START_BIT_MICROS + STOP1_BIT_MICROS + microsPerBit * BITS_PER_BYTE * MAX_PACKET_SIZE + ONE_SECOND_IN_MICROS * 3 / 2) {
+        // 1.5 extra seconds of wait to let things stabilize
         updateStateTX(TX_AVAILABLE);
       }
       break;
@@ -561,7 +581,6 @@ void updateStateTX(AudioSerialTX_State newState) {
     case TX_AVAILABLE:
       TX_TRANSMIT_packetIndex = 0;
       sendingAudioSerialPacketSize = 0;
-      analogWrite(audioSerialTX, 0);
       break;
     case TX_LONG_START:
       sendAudioSerialPacketStartTime = micros();
@@ -575,6 +594,7 @@ void updateStateTX(AudioSerialTX_State newState) {
     case TX_TRANSMIT:
       break;
     case TX_FINISHED:
+      analogWrite(audioSerialTX, 0);
       break;
   }
 

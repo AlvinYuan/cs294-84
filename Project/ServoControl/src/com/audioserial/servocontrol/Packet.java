@@ -72,15 +72,18 @@ public class Packet {
     boolean locFromPacket; // if false, loc refers to location of user when they received the packet.
 
     public static void retrievedNewPacket(Packet p, boolean silent) {
-        if (!silent) {
-            Toast.makeText(MainActivity.genericContext, "Received new message!", Toast.LENGTH_SHORT).show();
-            Vibrator v = (Vibrator) MainActivity.genericContext.getSystemService(Context.VIBRATOR_SERVICE);
-            v.vibrate(500);
-        }
-        packetsReceived.add(0, p);
-        packetAdapter.notifyDataSetChanged();
-        if (mapViewController != null) {
-            mapViewController.addPacketToMap(p);
+        if (p.packetType != PacketType.NOT_SPECIFIED) {
+            if (!silent) {
+                Toast.makeText(MainActivity.genericContext, "Received new message!", Toast.LENGTH_SHORT).show();
+                Vibrator v = (Vibrator) MainActivity.genericContext.getSystemService(Context.VIBRATOR_SERVICE);
+                v.vibrate(500);
+            }
+
+            packetsReceived.add(0, p);
+            packetAdapter.notifyDataSetChanged();
+            if (mapViewController != null) {
+                mapViewController.addPacketToMap(p);
+            }
         }
     }
 

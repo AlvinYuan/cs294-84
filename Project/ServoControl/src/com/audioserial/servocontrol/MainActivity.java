@@ -134,6 +134,7 @@ public class MainActivity extends FragmentActivity implements LocationListener {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            AudioSerial.singleton.ignoreNextMicReadsCount = 2;
             final String action = intent.getAction();
             if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                 Log.d("HeadSetPlugInTest", "state: " + intent.getIntExtra("state", -1));

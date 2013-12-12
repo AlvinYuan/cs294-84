@@ -41,6 +41,7 @@ public class AudioSerial {
 
     int baudrateRX;
     SoundMeter micAmplitudeSensor = new SoundMeter();
+    int ignoreNextMicReadsCount;
 
     boolean isPollingRX = false;
     Handler handlerRX = new Handler();
@@ -135,6 +136,7 @@ public class AudioSerial {
     }
 
     private void resetRX() {
+        ignoreNextMicReadsCount = 2;
         startRX();
     }
 
@@ -157,12 +159,15 @@ public class AudioSerial {
     private void pollRX() {
         int micPolledAmplitude = micAmplitudeSensor.getAmplitude();
 
-        if (micPolledAmplitude > MIC_SERIAL_THRESHOLD) {
-//            Toast.makeText(MainActivity.genericContext, "Retrieving Packet", Toast.LENGTH_SHORT).show();
+        if (micPolledAmplitude > MIC_SERIAL_THRESHOLD && ignoreNextMicReadsCount == 0) {
+            Toast.makeText(MainActivity.genericContext, "Retrieving Packet", Toast.LENGTH_SHORT).show();
             // background task.
             // Note that while packet is being retrieved, micAmplitudeSensor is disabled.
             // So until the packet retrieval finishes, micAmplitudeSensor.getAmplitude() will return 0.
             new RetrievePacketRXTask().execute();
+        }
+        if (ignoreNextMicReadsCount != 0) {
+            ignoreNextMicReadsCount--;
         }
 
         if (isPollingRX) {
@@ -280,9 +285,9 @@ public class AudioSerial {
         @Override
         protected String doInBackground(Void... arg0) {
             int bufferSizeRX =
-                    (sampleRate * 1) +                                              // one second start bit
-                    (sampleRate * 1 / baudrateRX) +                                 // one stop bit
-                    (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX); // max bytes in a message
+                    (sampleRate * 1) +                                               // one second start bit
+                    (sampleRate * 1 / baudrateRX) +                                  // one stop bit
+                    (sampleRate * (BITS_PER_BYTE * MAX_MESSAGE_SIZE) / baudrateRX);  // max bytes in a message
 
             int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
             // Ensure buffer size is large enough to instantiate AudioRecord. Since bufferRX is shorts, this will actually be at least twice the minimum size.
@@ -305,6 +310,7 @@ public class AudioSerial {
             audiorecord.release();
             audiorecord = null;
             micAmplitudeSensor.start();
+            ignoreNextMicReadsCount = 1;
 
             // Parse message
             return parsePacketStringRX(bufferRX);
