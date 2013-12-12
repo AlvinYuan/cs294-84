@@ -13,7 +13,7 @@
 #include "RF24.h"
 
 // Constants
-const int MAX_PACKET_SIZE = 50;
+const int MAX_PACKET_SIZE = 32;
 const char PACKET_DELIMITER = '\n';
 const long BITS_PER_BYTE = 10;
 const uint64_t RADIO_PIPE = 0xF0F0F0F0E1LL; // Radio pipe address for nordics to communicate.

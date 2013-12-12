@@ -15,7 +15,7 @@
 #include "RF24.h"
 
 // Constants
-const int MAX_PACKET_SIZE = 50;
+const int MAX_PACKET_SIZE = 32;
 const char PACKET_DELIMITER = '\n';
 const long BITS_PER_BYTE = 10;
 const long ONE_SECOND_IN_MICROS = 1000000;
@@ -208,7 +208,7 @@ void loop(){
     long currentTime = millis();
     if (readAudioSerialPacketSize > packetTypeIndex) {
       if (readAudioSerialPacket[packetTypeIndex] == TYPE_SOS) {
-        if (digitalRead(sosSwitch) == LOW) {
+        if (digitalRead(sosSwitch) == HIGH) {
           // Switch is on.
           // Send read packet and update last SOS send time.
           // Expects that phone will send SOS messages periodically
@@ -415,6 +415,8 @@ boolean readAudioSerial() {
   boolean received = false;
   if (audioSerial.available()) {
     readAudioSerialPacketSize = audioSerial.readBytesUntil(PACKET_DELIMITER, readAudioSerialPacket, MAX_PACKET_SIZE);
+    readAudioSerialPacket[readAudioSerialPacketSize] = PACKET_DELIMITER;
+    readAudioSerialPacketSize++;
     received = true;
   }
   return received;

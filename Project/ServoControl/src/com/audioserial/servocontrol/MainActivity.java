@@ -24,6 +24,7 @@ public class MainActivity extends FragmentActivity implements LocationListener {
     public static Location currentLocation;
 
     // Debugging
+    public static final boolean DEBUG = false;
     public static TextView debuggingMessageTextView;
 
     // Simulate ActionBar tabs b/c we want to support Froyo and sherlock is ugly.
@@ -74,6 +75,9 @@ public class MainActivity extends FragmentActivity implements LocationListener {
         tabContents[1].setVisibility(View.INVISIBLE);
         tabContentParent.addView(tabContents[1]);
         sosViewController = new SOSViewController(tabContents[1], this);
+        if (DEBUG) {
+            debuggingMessageTextView = (TextView) tabContents[1].findViewById(R.id.textView1);
+        }
         // Log
         tabContents[2] = inflater.inflate(R.layout.log_view, tabContentParent, false);
         tabContents[2].setVisibility(View.INVISIBLE);
