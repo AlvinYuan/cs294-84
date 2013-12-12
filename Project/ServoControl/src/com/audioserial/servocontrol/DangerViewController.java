@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.RadioGroup;
+import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -31,12 +32,15 @@ public class DangerViewController implements OnSeekBarChangeListener {
         g1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.fire) {
-                    dangerType = Packet.TypeOfDanger.FIRE;
-                }
-                else if (checkedId == R.id.unstable){
-                    // replace this option? for the sake of focusing on one type of emergency (disaster)
-                    dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
+                if (checkedId != -1 && ((RadioButton) g1.findViewById(checkedId)).isChecked()) {
+                    g2.clearCheck();
+                    if (checkedId == R.id.fire) {
+                        dangerType = Packet.TypeOfDanger.FIRE;
+                    }
+                    else if (checkedId == R.id.unstable){
+                        // replace this option? for the sake of focusing on one type of emergency (disaster)
+                        dangerType = Packet.TypeOfDanger.UNSTABLE_SURROUNDINGS;
+                    }
                 }
             }
         });
@@ -45,11 +49,14 @@ public class DangerViewController implements OnSeekBarChangeListener {
         g2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.chem) {
-                    dangerType = Packet.TypeOfDanger.CHEMICAL;
-                }
-                else if (checkedId == R.id.other){
-                    dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
+                if (checkedId != -1 && ((RadioButton) g2.findViewById(checkedId)).isChecked()) {
+                    g1.clearCheck();
+                    if (checkedId == R.id.chem) {
+                        dangerType = Packet.TypeOfDanger.CHEMICAL;
+                    }
+                    else if (checkedId == R.id.other){
+                        dangerType = Packet.TypeOfDanger.NOT_SPECIFIED;
+                    }
                 }
             }
         });
